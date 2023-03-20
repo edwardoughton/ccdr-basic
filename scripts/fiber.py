@@ -80,13 +80,38 @@ def process_existing_fiber(country):
     return
 
 
+def process_itu_data(country):
+    """
+    Load and process existing fiber data.
+
+    """
+    iso3 = country['iso3']
+    iso2 = country['iso2'].lower()
+
+    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    filename = 'core_edges_existing.shp'
+    path_output = os.path.join(folder, filename)
+
+    path = os.path.join(DATA_RAW, 'itu', 'trx_public_2023-02-26 trx_merged_4326.shp')
+    data = gpd.read_file(path, crs='epsg:4326')
+
+    data = data[data['country'] == country['country']]
+
+    data.to_file(path_output, crs='epsg:4326')
+
+    return
+
+
 if __name__ == '__main__':
 
     countries = get_countries()
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['MWI']: #'GHA',
-            continue
+        if country['iso3'] in ['KEN']:
+            process_existing_fiber(country)
 
-        process_existing_fiber(country)
+        if country['iso3'] in ['AZE']:
+            process_itu_data(country)
