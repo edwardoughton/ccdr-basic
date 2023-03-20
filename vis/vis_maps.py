@@ -69,7 +69,7 @@ def get_regional_shapes():
     return output
 
 
-def plot_regions_by_geotype(country, regions, path):
+def plot_regions_by_geotype(country, regions, path_out):
     """
     Plot regions by geotype.
 
@@ -112,11 +112,13 @@ def plot_regions_by_geotype(country, regions, path):
     )
 
     sns.set(font_scale=1, font="Times New Roman")
+    sns.set_style("ticks")
     fig, ax = plt.subplots(1, 1, figsize=country['figsize'])
+    fig.set_facecolor('gainsboro')
     minx, miny, maxx, maxy = regions.total_bounds
 
-    ax.set_xlim(minx-.5, maxx+.5)
-    ax.set_ylim(miny-0.1, maxy+.1)
+    ax.set_xlim(minx-1, maxx+1)
+    ax.set_ylim(miny-1, maxy+1)
 
     regions.plot(column='bin', ax=ax, cmap='viridis_r', linewidth=0.2, alpha=0.8,
     legend=True, edgecolor='grey')
@@ -132,14 +134,14 @@ def plot_regions_by_geotype(country, regions, path):
     fig.suptitle(name)
 
     fig.tight_layout()
-    fig.savefig(path, dpi=600)
+    fig.savefig(path_out, dpi=600)
 
     plt.close(fig)
 
 
-def plot_cells_per_region(country, regions, path):
+def plot_cells_per_region_panel(country, regions, path_out):
     """
-    Plot regions by geotype.
+    Plot cells per regions as a panel.
 
     """
     iso3 = country['iso3']
@@ -148,10 +150,6 @@ def plot_cells_per_region(country, regions, path):
     filename = 'national_outline.shp'
     path_outline = os.path.join(DATA_PROCESSED, iso3, filename)
     national_outline = gpd.read_file(path_outline, crs='epsg:4326')
-
-    filename = 'surface_water.shp'
-    path_water = os.path.join(DATA_PROCESSED, iso3, 'surface_water', filename)
-    surface_water = gpd.read_file(path_water, crs='epsg:4326')
 
     filename = '{}.csv'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
@@ -166,12 +164,8 @@ def plot_cells_per_region(country, regions, path):
         ), crs='epsg:4326'
     )
 
-    # df1.union(df2)
-    # sites = sites.difference(surface_water)
-    # sites = sites.overlay(surface_water, how='difference')
-    # sites = sites.intersection(national_outline)
-    # sites = sites.overlay(national_outline, how='intersection')
-    # print(sites)
+    sns.set(font_scale=1, font="Times New Roman")
+    sns.set_style("ticks")
     fig, (ax1, ax2) = plt.subplots(2, 2, figsize=(12,12))
     fig.subplots_adjust(hspace=.2, wspace=.2)
 
@@ -183,16 +177,16 @@ def plot_cells_per_region(country, regions, path):
             ax[dim].set_ylim(miny-0.1, maxy+.1)
 
     fig.set_facecolor('gainsboro')
-
+    sites = sites[['radio', 'geometry']]
     gsm = sites.loc[sites['radio'] == 'GSM']
     umts = sites.loc[sites['radio'] == 'UMTS']
     lte = sites.loc[sites['radio'] == 'LTE']
     nr = sites.loc[sites['radio'] == 'NR']
 
-    # regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax1[0])
-    # regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax1[1])
-    # regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax2[0])
-    # regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax2[1])
+    regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax1[0])
+    regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax1[1])
+    regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax2[0])
+    regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax2[1])
 
     national_outline.plot(facecolor="none", lw=2, edgecolor="black", ax=ax1[0])
     national_outline.plot(facecolor="none", lw=2, edgecolor="black", ax=ax1[1])
@@ -202,7 +196,8 @@ def plot_cells_per_region(country, regions, path):
     gsm.plot(color='red', markersize=3, ax=ax1[0])
     umts.plot(color='blue', markersize=3, ax=ax1[1])
     lte.plot(color='yellow', markersize=3, ax=ax2[0])
-    nr.plot(color='black', markersize=3, ax=ax2[1])
+    if len(nr) > 0:
+        nr.plot(color='black', markersize=3, ax=ax2[1])
 
     ax1[0].set_title('2G GSM Cells')
     ax1[1].set_title('3G UMTS Cells')
@@ -221,7 +216,7 @@ def plot_cells_per_region(country, regions, path):
 
     fig.tight_layout()
 
-    main_title = 'Mobile Cellular Infrastructure: {}'.format(name)
+    main_title = 'Mobile Cellular Infrastructure by Generation for {}.'.format(name)
     plt.suptitle(main_title, fontsize=20, y=1.03)
 
     crs = 'epsg:4326'
@@ -231,7 +226,7 @@ def plot_cells_per_region(country, regions, path):
     cx.add_basemap(ax2[0], crs=crs)
     cx.add_basemap(ax2[1], crs=crs)
 
-    plt.savefig(path,
+    plt.savefig(path_out,
     pad_inches=0.4,
     bbox_inches='tight',
     dpi=600,
@@ -239,7 +234,93 @@ def plot_cells_per_region(country, regions, path):
     plt.close()
 
 
-def plot_coverage_by_region(country, regions, path):
+def plot_cells_per_region_single(country, regions, path_out):
+    """
+    Plot cells per regions as a single plot.
+
+    """
+    iso3 = country['iso3']
+    name = country['country']
+
+    filename = 'national_outline.shp'
+    path_outline = os.path.join(DATA_PROCESSED, iso3, filename)
+    national_outline = gpd.read_file(path_outline, crs='epsg:4326')
+
+    filename = '{}.csv'.format(iso3)
+    folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
+    path_sites = os.path.join(folder, filename)
+    sites = pd.read_csv(path_sites, encoding='latin-1')
+
+    sites = gpd.GeoDataFrame(
+        sites,
+        geometry=gpd.points_from_xy(
+            sites.lon,
+            sites.lat
+        ), crs='epsg:4326'
+    )
+
+    sns.set(font_scale=1, font="Times New Roman")
+    sns.set_style("ticks")
+    fig, ax = plt.subplots(1, 1, figsize=(8,6))
+    fig.subplots_adjust(hspace=.2, wspace=.2)
+
+    minx, miny, maxx, maxy = regions.total_bounds
+    buffer = 2
+    ax.set_xlim(minx-buffer, maxx+buffer)
+    ax.set_ylim(miny-0.1, maxy+.1)
+
+    fig.set_facecolor('gainsboro')
+    sites = sites[['radio', 'geometry']]
+    gsm = sites.loc[sites['radio'] == 'GSM']
+    umts = sites.loc[sites['radio'] == 'UMTS']
+    lte = sites.loc[sites['radio'] == 'LTE']
+    nr = sites.loc[sites['radio'] == 'NR']
+
+    regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax)
+    regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax)
+    regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax)
+    regions.plot(facecolor="none", lw=.5, edgecolor="grey", ax=ax)
+
+    national_outline.plot(facecolor="none", lw=1.2, edgecolor="black", ax=ax)
+    national_outline.plot(facecolor="none", lw=1.2, edgecolor="black", ax=ax)
+    national_outline.plot(facecolor="none", lw=1.2, edgecolor="black", ax=ax)
+    national_outline.plot(facecolor="none", lw=1.2, edgecolor="black", ax=ax)
+
+    filename = 'core_edges_existing.shp'
+    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+    path_fiber = os.path.join(folder, filename)
+    if os.path.exists(path_fiber):
+        fiber = gpd.read_file(path_fiber, crs='epsg:4326')
+        fiber.plot(color='orange', lw=1, ax=ax, legend=True)
+
+    gsm.plot(color='red', markersize=3, ax=ax, legend=True)
+    umts.plot(color='blue', markersize=3, ax=ax, legend=True)
+    lte.plot(color='yellow', markersize=3, ax=ax, legend=True)
+    if len(nr) > 0:
+        nr.plot(color='black', markersize=3, ax=ax, legend=True)
+
+    ax.set_title('For all Fiber Routes and 2G, 3G, 4G and 5G Cells')
+
+    fig.tight_layout()
+
+    main_title = 'Mobile Cellular Infrastructure by Generation for {}.'.format(name)
+    plt.suptitle(main_title, fontsize=20, y=1.03)
+
+    crs = 'epsg:4326'
+
+    cx.add_basemap(ax, crs=crs)
+
+    plt.legend(['Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ], loc='lower right', title='Assets')
+
+    plt.savefig(path_out,
+    pad_inches=0.4,
+    bbox_inches='tight',
+    dpi=600,
+    )
+    plt.close()
+
+
+def plot_coverage_by_region(country, regions, path_out):
     """
     Plot regions by geotype.
 
@@ -329,7 +410,7 @@ def plot_coverage_by_region(country, regions, path):
     cx.add_basemap(ax2[0], crs=crs)
     cx.add_basemap(ax2[1], crs=crs)
 
-    plt.savefig(path,
+    plt.savefig(path_out,
     # pad_inches=0.4,
     bbox_inches='tight'
     )
@@ -467,6 +548,7 @@ def single_extreme_plot(country, regions, outline, path):
         'inuncoast_rcp8p5_wtsub_2080_rp1000_0_perc_50.tif'
     ]
 
+    sns.set(font_scale=1, font="Times New Roman")
     fig, axes = plt.subplots(figsize=(10,10))
     fig.subplots_adjust(hspace=.4, wspace=.4)
     fig.set_facecolor('gainsboro')
@@ -540,7 +622,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['MWI']: #['MWI','GHA']
+        if not country['iso3'] in ['KEN']: #['MWI','GHA']
             continue
 
         iso3 = country['iso3']
@@ -564,17 +646,21 @@ if __name__ == '__main__':
         path = os.path.join(DATA_PROCESSED, iso3, filename)
         outline = gpd.read_file(path, crs='epsg:4326')
 
-        # path = os.path.join(folder_vis, '{}_by_pop_density.png'.format(iso3))
+        # path_out = os.path.join(folder_vis, '{}_by_pop_density.png'.format(iso3))
         # if not os.path.exists(path):
-        #     plot_regions_by_geotype(country, shapes, path)
+        #     plot_regions_by_geotype(country, shapes, path_out)
 
-        path = os.path.join(folder_vis, '{}_cells_by_region.tiff'.format(iso3))
+        # path_out = os.path.join(folder_vis, '{}_cells_by_region_panel.tiff'.format(iso3))
         # if not os.path.exists(path):
-        plot_cells_per_region(country, shapes, path)
+        #     plot_cells_per_region_panel(country, shapes, path_out)
+
+        path_out = os.path.join(folder_vis, '{}_cells_by_region_single.tiff'.format(iso3))
+        # if not os.path.exists(path):
+        plot_cells_per_region_single(country, shapes, path_out)
 
         # path = os.path.join(folder_vis, '{}_covered_by_region.png'.format(iso3))
         # if not os.path.exists(path):
-        #     plot_coverage_by_region(country, shapes, path)
+        #     plot_coverage_by_region(country, shapes, path_out)
 
         # path = os.path.join(folder_vis, '{}_uncovered_by_region.png'.format(iso3))
         # # if not os.path.exists(path):
