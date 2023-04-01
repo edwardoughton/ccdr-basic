@@ -132,3 +132,4 @@ data/*
 # data/processed/*
 # data/raw/*
 vis/figures/*
+vis/data/*

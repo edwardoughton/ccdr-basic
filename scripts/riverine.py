@@ -194,7 +194,7 @@ def plot_inunriver_uncovered(country, outline, dimensions,
                 path_fiber = os.path.join(folder, filename)
                 if os.path.exists(path_fiber):
                     fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-                    fiber.plot(color='orange', lw=1, ax=ax)
+                    fiber.plot(color='orange', lw=1.5, ax=ax)
 
                 filename = '{}.csv'.format(iso3)
                 folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
@@ -271,7 +271,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['AZE', 'KEN']:#, 'KEN']: #['KEN']
+        if not country['iso3'] in ['AZE']:#, 'KEN']: #['KEN']
             continue
 
         print('processing rivers')
