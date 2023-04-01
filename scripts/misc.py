@@ -123,8 +123,8 @@ def get_scenarios():
 
     for scenario in scenarios:
 
-        if 'coast' in scenario:
-            continue
+        # if 'coast' in scenario:
+        #     continue
 
         if any(x in scenario for x in return_periods): #specify return periods
 
@@ -167,15 +167,8 @@ def get_scenarios():
 
     output = list(output)
     output.sort()
-    #output = [#'inuncoast_rcp4p5_wtsub_2050_rp1000_0',
-    #'inuncoast_rcp4p5_wtsub_2080_rp0100_0',
-    #'inuncoast_rcp4p5_wtsub_2080_rp1000_0',
-    #'inuncoast_rcp4p5_wtsub_2030_rp0500_0',
-    #'inuncoast_rcp4p5_wtsub_2050_rp0100_0',
-    #'inuncoast_rcp8p5_wtsub_2080_rp0500_0',
-    #]
 
-    return output #['inuncoast_rcp4p5_wtsub_2080_rp0100_0']
+    return output
 
 
 def get_tropical_storm_scenarios():
@@ -353,9 +346,9 @@ if __name__ == '__main__':
         #if country['iso3'] == 'TJK':
         print(country['country'])
 
-    #scenarios = get_scenarios()
-    #for scenario in scenarios:
-    #    print(scenario)
+    scenarios = get_scenarios()
+    for scenario in scenarios:
+       print(scenario)
 
     #tropical_storm_scenarios = get_tropical_storm_scenarios()
     #for scenario in tropical_storm_scenarios:
