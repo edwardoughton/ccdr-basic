@@ -38,7 +38,7 @@ def intersect_hazard(country, hazard_types): #, scenarios
     region_ids = regions[gid_level].unique()
 
     folder_hazards = os.path.join(DATA_PROCESSED, iso3, 'hazards', hazard_type)
-    hazard_filenames = os.listdir(folder_hazards)#[:15]
+    hazard_filenames = os.listdir(folder_hazards)[::-1]#[:15]
 
     for hazard_filename in hazard_filenames:
 
@@ -125,7 +125,6 @@ def intersect_hazard(country, hazard_types): #, scenarios
         path_out = os.path.join(step1_folder, hazard_filename.replace(".tif", ".csv"))
         output.to_csv(path_out)
 
-
     return
 
 
@@ -136,81 +135,71 @@ def collect_data(country, hazard_type):
     """
     iso3 = country['iso3']
     gid_region = country['gid_region']
-    gid_id = "GID_{}".format(gid_region)
+    gid_level = "GID_{}".format(gid_region)
 
-    regions = get_regions(country, 1)
-    region_ids = regions[gid_id].unique()
+    # regions = get_regions(country, 1)
+    # region_ids = regions[gid_id].unique()
 
-    scenarios = get_scenarios()
-    scenarios = [os.path.basename(i).replace('.tif','') for i in scenarios]
-    print(scenarios)
-    # filename = 'fragility_curve.csv'
-    # path_fragility = os.path.join(DATA_RAW, filename)
-    # low, baseline, high = load_f_curves(path_fragility)
+    # scenarios = get_scenarios()
+    # scenarios = [os.path.basename(i).replace('.tif','') for i in scenarios]
 
-    # for region in region_ids:
+    filename = 'fragility_curve.csv'
+    path_fragility = os.path.join(DATA_RAW, filename)
+    low, baseline, high = load_f_curves(path_fragility)
 
-    #     folder = os.path.join(DATA_PROCESSED, iso3, 'regional_data', region, 'flood_scenarios')
-    #     if not os.path.exists(folder):
-    #         continue
-    #     path = os.path.join(folder, fiber_filename)
+    folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type, 'cells', 'step1')
+    if not os.path.exists(folder):
+        return
+    filenames = os.listdir(folder)
 
+    for filename in filenames:
 
+        print("Working on {}".format(filename))
 
+        path_in = os.path.join(folder, filename)
+        sites = gpd.read_file(path_in, crs='epsg:4326')#[:10]
 
+        output = []
 
-    # for fiber_filename in fiber_shapes:
+        for idx, sites_row in sites.iterrows():
 
-    #     if not ".shp" in fiber_filename:
-    #         continue
+            sites_row['depth_m'] = float(sites_row['depth'])
+            damage_low = query_fragility_curve(low, sites_row['depth_m'])
+            damage_baseline = query_fragility_curve(baseline, sites_row['depth_m'])
+            damage_high = query_fragility_curve(high, sites_row['depth_m'])
 
-    #     # if not "inunriver_rcp8p5_MIROC-ESM-CHEM_2080_rp01000" in fiber_filename:
-    #     #     continue
+            output.append({
+                gid_level: sites_row["gid_level"],
+                'depth_m': sites_row['depth_m'],
+                'radio': sites_row['radio'],
+                # 'total_m': fiber_row['total_m'],
+                'damage_low': damage_low,
+                'damage_baseline': damage_baseline,
+                'damage_high': damage_high,
+                'cost_usd_low': round(country['cell_cost_usd'] * damage_low),
+                'cost_usd_baseline':  round(country['cell_cost_usd'] * damage_baseline),
+                'cost_usd_high':  round(country['cell_cost_usd'] * damage_high),
+            })
 
-    #     print("Working on {}".format(fiber_filename))
+        if len(output) == 0:
+            continue
 
-    #     output = []
+        results_folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type, 'cells', 'csv_files', 'disaggregated')
+        if not os.path.exists(results_folder):
+            os.makedirs(results_folder)
+        path_out = os.path.join(results_folder, filename)
 
-    #     path_fiber = os.path.join(folder_shapes, fiber_filename)
-    #     fiber = gpd.read_file(path_fiber, crs='epsg:4326')#[:10]
+        output = pd.DataFrame(output)
+        output.to_csv(path_out, index=False)
 
-    #     for idx, fiber_row in fiber.iterrows():
-
-    #         damage_low = query_fragility_curve(low, fiber_row['value'])
-    #         damage_baseline = query_fragility_curve(baseline, fiber_row['value'])
-    #         damage_high = query_fragility_curve(high, fiber_row['value'])
-
-    #         output.append({
-    #             gid_level: fiber_row[gid_level],
-    #             'depth_m': fiber_row['value'],
-    #             'length_m': fiber_row['length_m'],
-    #             # 'total_m': fiber_row['total_m'],
-    #             'damage_low': damage_low,
-    #             'damage_baseline': damage_baseline,
-    #             'damage_high': damage_high,
-    #             'cost_usd_low': round(fiber_row['length_m'] * country['fiber_cost_usd_m'] * damage_low),
-    #             'cost_usd_baseline':  round(fiber_row['length_m'] * country['fiber_cost_usd_m'] * damage_baseline),
-    #             'cost_usd_high':  round(fiber_row['length_m'] * country['fiber_cost_usd_m'] * damage_high),
-    #         })
-
-    #     if len(output) == 0:
-    #         continue
-
-    #     results_folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type, 'fiber', 'csv_files', 'disaggregated')
-    #     if not os.path.exists(results_folder):
-    #         os.makedirs(results_folder)
-    #     path_out = os.path.join(results_folder, fiber_filename.replace('.shp', '.csv'))
-
-    #     output = pd.DataFrame(output)
-    #     output.to_csv(path_out, index=False)
-
-    #     results_folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type, 'fiber', 'csv_files', 'aggregated')
-    #     if not os.path.exists(results_folder):
-    #         os.makedirs(results_folder)
-    #     path_out = os.path.join(results_folder, fiber_filename.replace('.shp', '.csv'))
-    #     output = output[[gid_level, "length_m", "cost_usd_low", "cost_usd_baseline","cost_usd_high"]]
-    #     output = output.groupby([gid_level], as_index=False).sum()
-    #     output.to_csv(path_out, index=False)
+        results_folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type, 'cells', 'csv_files', 'aggregated')
+        if not os.path.exists(results_folder):
+            os.makedirs(results_folder)
+        path_out = os.path.join(results_folder, filename)
+        output["cell_count"] = 1
+        output = output[[gid_level, "radio", "cell_count", "cost_usd_low", "cost_usd_baseline","cost_usd_high"]]
+        output = output.groupby([gid_level, "radio"], as_index=False).sum()
+        output.to_csv(path_out, index=False)
 
     return
 
@@ -266,6 +255,68 @@ def query_fragility_curve(f_curve, depth):
     return 0
 
 
+def aggregate_results(country): #, outline, dimensions, shapes):
+    """
+    Bar plot of river damage costs.
+
+    """
+    iso3 = country['iso3']
+    name = country['country']
+    gid_level = "GID_{}".format(country['gid_region'])
+
+    filename = "number_of_cells.csv"
+    folder = os.path.join(DATA_PROCESSED, iso3, 'results', 'inunriver', 'cells')
+    path = os.path.join(folder, filename)
+    cell_count = pd.read_csv(path)
+    total_cells = cell_count.groupby(["radio"], as_index=False).sum()
+
+    folder = os.path.join(DATA_PROCESSED, iso3, 'results', 'inunriver', 'cells', 'csv_files', 'aggregated')
+    filenames = os.listdir(folder)
+
+    output = []
+
+    for filename in filenames:
+
+        path = os.path.join(folder, filename)
+
+        data = pd.read_csv(path)
+
+        cells_at_risk = data[["radio", "cell_count"]] #gid_level,
+        cells_at_risk = cells_at_risk.groupby(["radio"], as_index=False).sum()#.reset_index
+        cells_at_risk = pd.merge(cells_at_risk, total_cells, how='left', left_on=['radio'], right_on = ['radio'])
+        #cell count is cells at risk. #count is total cells.
+        cells_at_risk['cells_at_risk_perc'] = round(cells_at_risk['cell_count'] / cells_at_risk['count'] * 100, 1)
+
+        hazard_type = filename.split('_')[0]
+        scenario = filename.split('_')[1]
+        model = filename.split('_')[2]
+        year = filename.split('_')[3]
+        return_period = filename.split('_')[4]
+        return_period = return_period.replace('.csv', '')
+
+        for idx, cell_row in cells_at_risk.iterrows():
+
+            output.append({
+                'hazard_type': hazard_type,
+                'radio': cell_row['radio'],
+                'scenario': scenario,
+                'model': model,
+                'year': year,
+                'return_period': return_period,
+                'filename': filename,
+                'cells_at_risk': cell_row['cell_count'],
+                'total_cells': cell_row['count'],
+                'cells_at_risk_perc': cell_row['cells_at_risk_perc'],
+            })
+
+    output = pd.DataFrame(output)
+
+    filename = os.path.join('inunriver_aggregated_results.csv')
+    folder = os.path.join(DATA_PROCESSED, iso3, 'results', 'inunriver', 'cells', 'csv_files')
+    path_out = os.path.join(folder, filename)
+    output.to_csv(path_out, index=False)
+
+
 if __name__ == "__main__":
 
     filename = "countries.csv"
@@ -282,7 +333,7 @@ if __name__ == "__main__":
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] == "AZE":
+        if not country['iso3'] == "KEN":
             continue
 
         regions = get_regions(country, 1)
@@ -291,6 +342,8 @@ if __name__ == "__main__":
 
         # for idx, region in regions.iterrows():
 
-            intersect_hazard(country, hazard_type)
+            # intersect_hazard(country, hazard_type)
 
-        # collect_data(country, 'inunriver')
+            collect_data(country, 'inunriver')
+
+            aggregate_results(country) #outline, dimensions, shapes)
