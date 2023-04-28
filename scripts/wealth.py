@@ -17,8 +17,8 @@ import pyproj
 from shapely.geometry import MultiPolygon, mapping, MultiLineString
 from shapely.ops import transform, unary_union, nearest_points
 import rasterio
-from rasterio.mask import mask
-from rasterstats import zonal_stats
+# from rasterio.mask import mask
+# from rasterstats import zonal_stats
 from tqdm import tqdm
 from shapely.geometry import box, shape
 from rasterio.merge import merge
@@ -232,13 +232,13 @@ if __name__ == '__main__':
 
     for idx, country in tqdm(countries.iterrows(), total=countries.shape[0]):
 
-        if not country['iso3'] in ['MWI', 'GHA']:
+        if not country['iso3'] in ['AZE']: #, 'GHA']:
             continue
 
         create_regional_grid(country)
 
-        process_regional_wealth(country)
+        # process_regional_wealth(country)
 
-        export_wealth_grid(country)
+        # export_wealth_grid(country)
 
-        separate_bottom_portion(country)
+        # separate_bottom_portion(country)
