@@ -154,10 +154,10 @@ def intersect_hazard(country, hazard_type):
         hazard_layer = gpd.read_file(path_hazard, crs='epsg:4326')
 
         #intersect fiber with hazard.
-        fiber = fiber.overlay(hazard_layer, how='intersection', keep_geom_type=True) #, make_valid=True
+        fiber = gpd.overlay(fiber, hazard_layer, how='intersection', keep_geom_type=True) #, make_valid=True
 
         #intersect fiber with regional layer to provide GID id.
-        fiber = fiber.overlay(regions, how='intersection', keep_geom_type=True) #, make_valid=True
+        fiber = gpd.overlay(fiber, regions, how='intersection', keep_geom_type=True) #, make_valid=True
 
         fiber = fiber.to_crs(3857)
         fiber['length_m'] = fiber['geometry'].length
@@ -374,7 +374,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['KEN']:#, 'KEN']: #,'KEN']: #['KEN'] #
+        if not country['iso3'] in ['COD']:#, 'KEN']: #,'KEN']: #['KEN'] #
             continue
 
         # if country['iso3'] in ['KEN']:

@@ -264,7 +264,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['KEN']:#, '']: #['KEN']
+        if not country['iso3'] in ['COD']:#, '']: #['KEN']
             continue
 
         print('processing coastal')

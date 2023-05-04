@@ -20,12 +20,13 @@ from rasterio.mask import mask
 from tqdm import tqdm
 
 from misc import get_countries, process_country_shapes, process_regions, get_regions, get_scenarios
+from fiber import process_fiber
 
 CONFIG = configparser.ConfigParser()
 CONFIG.read(os.path.join(os.path.dirname(__file__),'..', 'scripts', 'script_config.ini'))
 BASE_PATH = CONFIG['file_locations']['base_path']
 
-DATA_RAW = os.path.join(BASE_PATH, 'raw')
+DATA_RAW = os.path.join(BASE_PATH, '..', '..', 'data_raw')
 DATA_PROCESSED = os.path.join(BASE_PATH, 'processed')
 
 
@@ -49,6 +50,9 @@ def run_preprocessing(country):
     print('Working on create_national_sites_shp')
     create_national_sites_shp(iso3)
 
+    print('Working on process_fiber')
+    process_fiber(country)
+    
     regions_df = get_regions(country, regional_level)#[:1]#[::-1]
 
     print('Working on regional disaggregation')
@@ -83,20 +87,20 @@ def run_preprocessing(country):
             #print('Working on create_regional_sites_layer')
             create_regional_sites_layer(iso3, 2, region)
 
-    print('Convert cell estimates to site estimates')
-    gid_id = "GID_{}".format(regional_level)
-    region_ids = regions_df[gid_id].unique()
-    for region in region_ids:
+    # print('Convert cell estimates to site estimates')
+    # gid_id = "GID_{}".format(regional_level)
+    # region_ids = regions_df[gid_id].unique()
+    # for region in region_ids:
 
-        polygon = regions_df[regions_df[gid_id] == region]
+    #     polygon = regions_df[regions_df[gid_id] == region]
 
-        if not len(polygon) > 0:
-            continue
+    #     if not len(polygon) > 0:
+    #         continue
 
-        # if not region == 'AZE.1_1':
-        #    continue
+    #     # if not region == 'AZE.1_1':
+    #     #    continue
 
-        create_sites_layer(country, regional_level, region, polygon)
+    #     create_sites_layer(country, regional_level, region, polygon)
 
     return
 
@@ -130,7 +134,7 @@ def create_national_sites_csv(country):
 
     if not os.path.exists(folder):
         os.makedirs(folder)
-    print('here')
+
     filename = "cell_towers_2022-12-24.csv"
     path = os.path.join(DATA_RAW, filename)
 
@@ -1004,8 +1008,8 @@ if __name__ == "__main__":
     countries = pd.read_csv(path, encoding='latin-1')
 
     for idx, country in countries.iterrows():
-
-        if not country['iso3'] == "AZE":
+ 
+        if not country['iso3'] == "COD":
             continue
-
+            
         run_preprocessing(country)
