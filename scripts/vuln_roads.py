@@ -86,7 +86,7 @@ def intersect_hazard(country, hazard_type):
     folder = os.path.join(DATA_PROCESSED, iso3, 'regions')
     path_regions = os.path.join(folder, filename)
     regions = gpd.read_file(path_regions, crs='epsg:4326')
-    region_ids = regions[gid_id].unique()
+    region_ids = regions[gid_id].unique()#[:1]
 
     folder_hazards = os.path.join(DATA_PROCESSED, iso3, 'hazards', hazard_type)
     hazard_filenames = os.listdir(folder_hazards)
@@ -102,6 +102,8 @@ def intersect_hazard(country, hazard_type):
         #     continue
 
         print("Working on {}, {}".format(hazard_filename, hazard_type))
+
+        road_length = []
 
         for region in region_ids:
 
@@ -130,6 +132,10 @@ def intersect_hazard(country, hazard_type):
             roads = roads.to_crs(4326)
             roads['total_m'] = roads_length_m
 
+            road_length.append({
+                gid_id: region,
+                "roads_length_m": roads_length_m,
+            })
             results_folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type, 'roads', 'shapes', hazard_filename.replace('.shp', ''))
             if not os.path.exists(results_folder):
                 os.makedirs(results_folder)
@@ -142,6 +148,15 @@ def intersect_hazard(country, hazard_type):
                 os.makedirs(results_folder)
             path_out = os.path.join(results_folder, region + "_" + hazard_filename.replace('.shp', '.csv'))
             to_csv.to_csv(path_out)
+
+        results_folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type, 'roads') #, 'csv_files'
+        if not os.path.exists(results_folder):
+            os.makedirs(results_folder)
+        path_out = os.path.join(results_folder, "road_length.csv")
+        if os.path.exists(path_out):
+            continue
+        road_length = pd.DataFrame(road_length)
+        road_length.to_csv(path_out)
 
     return
 
@@ -212,7 +227,7 @@ def collect_data(country, hazard_type):
         if len(output) == 0:
             continue
 
-        results_folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type,  'roads', 'long_form')
+        results_folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type,  'roads', 'csv_files', 'disaggregated')
         if not os.path.exists(results_folder):
             os.makedirs(results_folder)
         path_out = os.path.join(results_folder, scenario + '.csv')
@@ -220,11 +235,11 @@ def collect_data(country, hazard_type):
         output = pd.DataFrame(output)
         output.to_csv(path_out, index=False)
 
-        results_folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type, 'roads', 'aggregated')
+        results_folder = os.path.join(DATA_PROCESSED, iso3, 'results', hazard_type, 'roads', 'csv_files', 'aggregated')
         if not os.path.exists(results_folder):
             os.makedirs(results_folder)
         path_out = os.path.join(results_folder, scenario + '.csv')
-        output = output[[gid_level, "length_m", "total_m", "cost_usd_low", "cost_usd_baseline","cost_usd_high"]]
+        output = output[[gid_level, "length_m", "cost_usd_low", "cost_usd_baseline","cost_usd_high"]]
         output = output.groupby([gid_level], as_index=False).sum()
         output.to_csv(path_out, index=False)
 
@@ -282,6 +297,62 @@ def query_fragility_curve(f_curve, depth):
     return 0
 
 
+def aggregate_results(country):
+    """
+    Bar plot of river damage costs.
+
+    """
+    iso3 = country['iso3']
+    name = country['country']
+    gid_level = "GID_{}".format(country['gid_region'])
+
+    filename = "road_length.csv"
+    folder = os.path.join(DATA_PROCESSED, iso3, 'results', 'inunriver', 'roads')
+    path = os.path.join(folder, filename)
+    road_length = pd.read_csv(path)
+    total_road_km = round(road_length['roads_length_m'].sum()/1e3)
+
+    folder = os.path.join(DATA_PROCESSED, iso3, 'results', 'inunriver', 'roads', 'csv_files', 'aggregated')
+    filenames = os.listdir(folder)
+
+    output = []
+
+    for filename in filenames:
+
+        path = os.path.join(folder, filename)
+
+        data = pd.read_csv(path)
+
+        road_at_risk_km = round(data['length_m'].sum()/1e3)
+        road_at_risk_perc = round(road_at_risk_km / total_road_km * 100, 1)
+
+        hazard_type = filename.split('_')[0]
+        scenario = filename.split('_')[1]
+        model = filename.split('_')[2]
+        year = filename.split('_')[3]
+        return_period = filename.split('_')[4]
+        return_period = return_period.replace('.csv', '')
+
+        output.append({
+            'hazard_type': hazard_type,
+            'scenario': scenario,
+            'model': model,
+            'year': year,
+            'return_period': return_period,
+            'filename': filename,
+            'road_at_risk_km': road_at_risk_km,
+            'total_road_km': total_road_km,
+            'road_at_risk_perc': road_at_risk_perc
+        })
+
+    output = pd.DataFrame(output)
+
+    filename = os.path.join('inunriver_aggregated_results.csv')
+    folder = os.path.join(DATA_PROCESSED, iso3, 'results', 'inunriver', 'roads', 'csv_files')
+    path_out = os.path.join(folder, filename)
+    output.to_csv(path_out, index=False)
+
+
 if __name__ == '__main__':
 
     filename = 'countries.csv'
@@ -304,6 +375,8 @@ if __name__ == '__main__':
 
             print('-- {}: {} --'.format(country['iso3'], hazard_type))
 
-            # intersect_hazard(country, hazard_type)
+            intersect_hazard(country, hazard_type)
 
             collect_data(country, hazard_type)
+
+            aggregate_results(country)
