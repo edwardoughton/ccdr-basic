@@ -25,7 +25,7 @@ CONFIG = configparser.ConfigParser()
 CONFIG.read(os.path.join(os.path.dirname(__file__), '..', 'scripts', 'script_config.ini'))
 BASE_PATH = CONFIG['file_locations']['base_path']
 
-DATA_RAW = os.path.join(BASE_PATH, 'raw')
+DATA_RAW = os.path.join(BASE_PATH, '..', '..', 'data_raw')
 DATA_PROCESSED = os.path.join(BASE_PATH, 'processed')
 RESULTS = os.path.join(BASE_PATH, '..', 'results')
 VIS = os.path.join(BASE_PATH, '..', 'vis', 'figures')
@@ -123,12 +123,12 @@ def plot_inunriver_costs_map(country, outline, dimensions, shapes):
 if __name__ == '__main__':
 
     filename = 'countries.csv'
-    path = os.path.join(DATA_RAW, filename)
+    path = os.path.join(BASE_PATH, 'raw', filename)
     countries = pd.read_csv(path, encoding='latin-1')
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['AZE']:#, 'KEN']: #['KEN']
+        if not country['iso3'] in ['COD']:#, 'KEN']: #['KEN']
             continue
 
         dimensions = (int(country['dimensions_y']), int(country['dimensions_x']))
@@ -141,7 +141,7 @@ if __name__ == '__main__':
         if not os.path.exists(folder_reports):
             os.makedirs(folder_reports)
 
-        filename = 'regions_{}_{}.shp'.format(country['lowest'], iso3)
+        filename = 'regions_{}_{}.shp'.format(country['gid_region'], iso3)
         path = os.path.join(DATA_PROCESSED, iso3, 'regions', filename)
         shapes = gpd.read_file(path, crs='epsg:4326')
 
@@ -149,6 +149,6 @@ if __name__ == '__main__':
         path = os.path.join(DATA_PROCESSED, iso3, filename)
         outline = gpd.read_file(path, crs='epsg:4326')
 
-        # plot_inunriver_costs_map(country, outline, dimensions, shapes)
+        plot_inunriver_costs_map(country, outline, dimensions, shapes)
 
         # barplot_inunriver_costs(country, outline, dimensions, shapes)

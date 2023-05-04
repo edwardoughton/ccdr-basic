@@ -199,7 +199,7 @@ if __name__ == '__main__':
 
     for idx, country in tqdm(countries.iterrows(), total=countries.shape[0]):
 
-        if not country['iso3'] == 'AZE':
+        if not country['iso3'] == 'COD':
             continue
 
         # if not country['continent'] == 'Africa':

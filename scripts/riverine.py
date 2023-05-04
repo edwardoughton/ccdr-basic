@@ -25,7 +25,7 @@ CONFIG = configparser.ConfigParser()
 CONFIG.read(os.path.join(os.path.dirname(__file__), '..', 'scripts', 'script_config.ini'))
 BASE_PATH = CONFIG['file_locations']['base_path']
 
-DATA_RAW = os.path.join(BASE_PATH, 'raw')
+DATA_RAW = os.path.join(BASE_PATH, '..', '..', 'data_raw')
 DATA_PROCESSED = os.path.join(BASE_PATH, 'processed')
 RESULTS = os.path.join(BASE_PATH, '..', 'results')
 VIS = os.path.join(BASE_PATH, '..', 'vis', 'figures')
@@ -53,7 +53,7 @@ def process_inunriver(country, scenarios, models, return_periods):
                 if os.path.exists(path_out):
                     continue
 
-                path = os.path.join(BASE_PATH,'..', '..','open-rigbi','data','raw','flood_hazard', filename)
+                path = os.path.join(DATA_RAW, 'flood_hazard', filename)
 
                 hazard = rasterio.open(path, 'r+')
                 hazard.nodata = 255
@@ -232,7 +232,7 @@ def plot_inunriver_uncovered(country, outline, dimensions,
                 main_title = 'Projected River Flooding: {}, {}, {}, {}, 2080'.format(name, scenario, model, rp)
                 plt.suptitle(main_title, fontsize=20, y=1.03, wrap=True)
 
-                path_out = os.path.join(folder_vis, 'inunriver_{}_{}_{}.tiff'.format(scenario, model, rp))
+                path_out = os.path.join(folder_vis, 'inunriver_{}_{}_{}.png'.format(scenario, model, rp))
 
                 plt.savefig(path_out,
                     pad_inches=0.4,
@@ -266,12 +266,12 @@ if __name__ == '__main__':
     ]
 
     filename = 'countries.csv'
-    path = os.path.join(DATA_RAW, filename)
+    path = os.path.join(BASE_PATH, 'raw', filename)
     countries = pd.read_csv(path, encoding='latin-1')
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['AZE']:#, 'KEN']: #['KEN']
+        if not country['iso3'] in ['COD']:#, 'KEN']: #['KEN']
             continue
 
         print('processing rivers')
@@ -290,7 +290,7 @@ if __name__ == '__main__':
         if not os.path.exists(folder_reports):
             os.makedirs(folder_reports)
 
-        filename = 'regions_{}_{}.shp'.format(country['lowest'], iso3)
+        filename = 'regions_{}_{}.shp'.format(country['gid_region'], iso3)
         path = os.path.join(DATA_PROCESSED, iso3, 'regions', filename)
         shapes = gpd.read_file(path, crs='epsg:4326')
 

@@ -19,7 +19,30 @@ DATA_RAW = os.path.join(BASE_PATH, 'raw')
 DATA_PROCESSED = os.path.join(BASE_PATH, 'processed')
 
 
-def process_existing_fiber(country):
+def process_fiber(iso3):
+    """
+    
+    """
+    countries = get_countries()
+
+    for idx, country in countries.iterrows():
+
+        if not country['iso3'] == iso3:
+            continue
+
+        if country['iso3'] in ['KEN']:
+            process_afterdark_data(country)
+
+        if country['iso3'] in ['AZE']:
+            process_itu_data(country)
+
+        if country['iso3'] in ['COD']:
+            process_afterdark_data(country)
+
+    return
+
+
+def process_afterdark_data(country):
     """
     Load and process existing fiber data.
 
@@ -33,8 +56,8 @@ def process_existing_fiber(country):
     filename = 'core_edges_existing.shp'
     path_output = os.path.join(folder, filename)
 
-    # if os.path.exists(path_output):
-    #     return print('Existing fiber already processed')
+    if os.path.exists(path_output):
+        return print('Existing fiber already processed')
 
     path = os.path.join(DATA_RAW, 'afterfiber', 'afterfiber.shp')
 
@@ -106,12 +129,4 @@ def process_itu_data(country):
 
 if __name__ == '__main__':
 
-    countries = get_countries()
-
-    for idx, country in countries.iterrows():
-
-        if country['iso3'] in ['KEN']:
-            process_existing_fiber(country)
-
-        if country['iso3'] in ['AZE']:
-            process_itu_data(country)
+    process_fiber('AZE')
