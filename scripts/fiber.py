@@ -129,4 +129,4 @@ def process_itu_data(country):
 
 if __name__ == '__main__':
 
-    process_fiber('AZE')
+    process_fiber('KEN')

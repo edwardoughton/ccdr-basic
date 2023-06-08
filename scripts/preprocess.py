@@ -1008,8 +1008,8 @@ if __name__ == "__main__":
     countries = pd.read_csv(path, encoding='latin-1')
 
     for idx, country in countries.iterrows():
- 
+
         if not country['iso3'] == "COD":
             continue
-            
+
         run_preprocessing(country)

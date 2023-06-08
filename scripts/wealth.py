@@ -48,7 +48,7 @@ def create_regional_grid(country):
 
     xmin, ymin, xmax, ymax= national_outline.total_bounds
 
-    cell_size = 2400
+    cell_size = country['grid_size']
 
     grid_cells = []
     for x0 in np.arange(xmin, xmax+cell_size, cell_size ):
@@ -59,11 +59,11 @@ def create_regional_grid(country):
 
     grid = gpd.GeoDataFrame(grid_cells, columns=['geometry'], crs='epsg:3857')
 
-    grid = grid.overlay(national_outline, how='intersection')
+    grid = gpd.overlay(grid, national_outline, how='intersection')
 
     grid = grid.to_crs(4326)
 
-    filename = 'regions_{}_{}.shp'.format(country['lowest'], country['iso3'])
+    filename = 'regions_{}_{}.shp'.format(country['gid_region'], country['iso3'])
     folder = os.path.join(DATA_PROCESSED, country['iso3'], 'regions')
     path_in = os.path.join(folder, filename)
     regions = gpd.read_file(path_in, crs='epsg:4326')#[:3]
@@ -74,7 +74,7 @@ def create_regional_grid(country):
 
     for idx, region in regions.iterrows():
 
-        gid_level = 'GID_{}'.format(country['lowest'])
+        gid_level = 'GID_{}'.format(country['gid_region'])
         gid_id = region[gid_level]
 
         output = []
@@ -106,7 +106,7 @@ def process_regional_wealth(country):
 
     """
     filename = "{}_relative_wealth_index.csv".format(country['iso3'])
-    folder = os.path.join(DATA_RAW, 'relative_wealth_index')
+    folder = os.path.join(BASE_PATH,'..','..','data_raw','relative_wealth_index')
     path_in = os.path.join(folder, filename)
 
     folder_out = os.path.join(DATA_PROCESSED, country['iso3'], 'relative_wealth_index', 'regions')
@@ -121,7 +121,7 @@ def process_regional_wealth(country):
             crs='epsg:4326')
     data = data.drop(columns=['longitude', 'latitude'])
 
-    filename = 'regions_{}_{}.shp'.format(country['lowest'], country['iso3'])
+    filename = 'regions_{}_{}.shp'.format(country['gid_region'], country['iso3'])
     folder = os.path.join(DATA_PROCESSED, country['iso3'], 'regions')
     path_in = os.path.join(folder, filename)
     regions = gpd.read_file(path_in, crs='epsg:4326')#[:3]
@@ -130,7 +130,7 @@ def process_regional_wealth(country):
 
         output = []
 
-        gid_level = 'GID_{}'.format(country['lowest'])
+        gid_level = 'GID_{}'.format(country['gid_region'])
         gid_id = region[gid_level]
 
         for idx, point in data.iterrows():
@@ -162,7 +162,7 @@ def export_wealth_grid(country):
     """
     output = []
 
-    filename = 'regions_{}_{}.shp'.format(country['lowest'], country['iso3'])
+    filename = 'regions_{}_{}.shp'.format(country['gid_region'], country['iso3'])
     folder = os.path.join(DATA_PROCESSED, country['iso3'], 'regions')
     path_in = os.path.join(folder, filename)
     regions = gpd.read_file(path_in, crs='epsg:4326')#[:2]
@@ -172,7 +172,7 @@ def export_wealth_grid(country):
 
     for idx, region in regions.iterrows():
 
-        gid_level = 'GID_{}'.format(country['lowest'])
+        gid_level = 'GID_{}'.format(country['gid_region'])
         gid_id = region[gid_level]
 
         path1 = os.path.join(folder_regions, gid_id + '.shp')
@@ -232,13 +232,13 @@ if __name__ == '__main__':
 
     for idx, country in tqdm(countries.iterrows(), total=countries.shape[0]):
 
-        if not country['iso3'] in ['AZE']: #, 'GHA']:
+        if not country['iso3'] in ['KEN']: #, 'GHA']: #'AZE', 'COD', 
             continue
 
         create_regional_grid(country)
 
-        # process_regional_wealth(country)
+        process_regional_wealth(country)
 
-        # export_wealth_grid(country)
+        export_wealth_grid(country)
 
-        # separate_bottom_portion(country)
+        separate_bottom_portion(country)
