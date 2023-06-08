@@ -516,7 +516,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows(): #, total=countries.shape[0]):
 
-        if not country['iso3'] in ['AZE']:#'MWI', 'GHA']:
+        if not country['iso3'] in ['BGD']:#'MWI', 'GHA']:
             continue
 
         create_regional_grid(country)

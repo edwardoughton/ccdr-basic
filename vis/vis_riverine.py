@@ -1,5 +1,5 @@
 """
-Visualize unconnected population to hazards.
+Visualize riverine hazard.
 
 Written by Ed Oughton.
 
@@ -271,18 +271,12 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['COD']:#, 'KEN']: #['KEN']
+        if not country['iso3'] in ['AZE']:#, 'KEN']: #['KEN']
             continue
 
-        print('processing rivers')
-        process_inunriver(country, scenarios, models, return_periods) #river flooding
-
-        print('extracting rivers')
-        extract_inunriver(country, scenarios, models, return_periods)
-
-        dimensions = (int(country['dimensions_y']), int(country['dimensions_x']))
+        dimensions = (int(country['dimensions_x']), int(country['dimensions_y']))
         iso3 = country['iso3']
-        country['figsize'] = (8,10)
+        country['figsize'] = dimensions
 
         print('-- {} --'.format(iso3))
 

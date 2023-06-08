@@ -1,27 +1,25 @@
 """
-Visualize supply-side metrics.
+Visualize riverine hazard.
 
 Written by Ed Oughton.
 
-May 2023
+May 4th 2022
 
 """
 import os
-# import sys
+import sys
 import configparser
-# import numpy as np
+import numpy as np
 import pandas as pd
 import geopandas as gpd
-# import rasterio
-# from rasterio.mask import mask
+import rasterio
+from rasterio.mask import mask
 import matplotlib.pyplot as plt
-# import seaborn as sns
+import seaborn as sns
 import contextily as cx
-# import geopy as gp
-# from math import ceil
-# import json
-
-from misc import get_countries
+import geopy as gp
+from math import ceil
+import json
 
 CONFIG = configparser.ConfigParser()
 CONFIG.read(os.path.join(os.path.dirname(__file__), '..', 'scripts', 'script_config.ini'))
@@ -29,32 +27,44 @@ BASE_PATH = CONFIG['file_locations']['base_path']
 
 DATA_RAW = os.path.join(BASE_PATH, '..', '..', 'data_raw')
 DATA_PROCESSED = os.path.join(BASE_PATH, 'processed')
-# RESULTS = os.path.join(BASE_PATH, '..', 'results')
+RESULTS = os.path.join(BASE_PATH, '..', 'results')
 VIS = os.path.join(BASE_PATH, '..', 'vis', 'figures')
 REPORTS = os.path.join(BASE_PATH, '..', 'reports', 'images')
 
 
-def plot_fiber(country, outline):
+def plot_landslide(country, outline, dimensions):
     """
-    Plot fiber data.
+    Plot landslide by region.
 
     """
     iso3 = country['iso3']
     name = country['country']
 
-    folder_vis = os.path.join(VIS, iso3, 'supply')
+    folder_vis = os.path.join(VIS, iso3, 'landslide')
     if not os.path.exists(folder_vis):
         os.makedirs(folder_vis)
 
-    dimensions = (int(country['dimensions_x']), int(country['dimensions_y']))
     fig, ax = plt.subplots(1, 1, figsize=dimensions)
     fig.subplots_adjust(hspace=.3, wspace=.1)
     fig.set_facecolor('gainsboro')
 
     minx, miny, maxx, maxy = outline.total_bounds
-    buffer = country['buffer']
+    buffer = 2
     ax.set_xlim(minx-(buffer-1), maxx+(buffer+1))
     ax.set_ylim(miny-0.1, maxy+.1)
+
+    fig.set_facecolor('gainsboro')
+
+    folder = os.path.join(DATA_PROCESSED, iso3, 'hazards', 'landslide')
+    filename = 'ls_arup.shp'
+    path1 = os.path.join(folder, filename)
+    if os.path.exists(path1):
+        hazard = gpd.read_file(path1, crs='epsg:3857')
+        hazard = hazard[hazard['Risk'].isin(['3.0','4.0'])]
+        hazard = hazard.to_crs(4326)
+        hazard.plot(color='black', linewidth=1.5, alpha=.5,
+            legend=True, edgecolor='black', ax=ax)
+        cx.add_basemap(ax, crs='epsg:4326')
 
     filename = 'core_edges_existing.shp'
     folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
@@ -62,58 +72,6 @@ def plot_fiber(country, outline):
     if os.path.exists(path_fiber):
         fiber = gpd.read_file(path_fiber, crs='epsg:4326')
         fiber.plot(color='orange', lw=1.5, ax=ax)
-
-    outline.plot(linewidth=1, alpha=1, facecolor="none", 
-        legend=True, edgecolor='black', ax=ax)
-    cx.add_basemap(ax, crs='epsg:4326')
-
-    plt.legend(
-        ['Fiber'], 
-        loc='lower right',
-        title='Assets'
-    )
-
-    fig.tight_layout()
-
-    main_title = 'Fiber Optic Network'
-    plt.suptitle(main_title, fontsize=20, y=1.02, wrap=True)
-
-    path_out = os.path.join(folder_vis, 'fiber.png')
-
-    fig.set_size_inches(dimensions)
-    plt.savefig(path_out,
-        pad_inches=0.4,
-        bbox_inches='tight',
-        dpi=600,
-    )
-    plt.close()
-
-
-def plot_cells(country, outline):
-    """
-    Plot cells.
-
-    """
-    iso3 = country['iso3']
-    name = country['country']
-
-    folder_vis = os.path.join(VIS, iso3, 'supply')
-    if not os.path.exists(folder_vis):
-        os.makedirs(folder_vis)
-
-    dimensions = (int(country['dimensions_x']), int(country['dimensions_y']))
-    fig, ax = plt.subplots(1, 1, figsize=dimensions)
-    fig.subplots_adjust(hspace=.3, wspace=.1)
-    fig.set_facecolor('gainsboro')
-
-    minx, miny, maxx, maxy = outline.total_bounds
-    buffer = country['buffer']
-    ax.set_xlim(minx-(buffer-1), maxx+(buffer+1))
-    ax.set_ylim(miny-0.1, maxy+.1)
-
-    outline.plot(linewidth=1, alpha=1, facecolor="none", 
-        legend=True, edgecolor='black', ax=ax)
-    cx.add_basemap(ax, crs='epsg:4326')
 
     filename = '{}.csv'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
@@ -141,19 +99,18 @@ def plot_cells(country, outline):
         nr.plot(color='black', markersize=3, ax=ax, legend=True)
 
     plt.legend(
-        ['2G GSM', '3G UMTS', '4G LTE', '5G NR'], 
+        ['Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ],
         loc='lower right',
         title='Assets'
     )
 
     fig.tight_layout()
 
-    main_title = 'Crowdsourced Mobile Cell Locations'
-    plt.suptitle(main_title, fontsize=20, y=1.02, wrap=True)
+    main_title = 'Landslide Risk Exposure for Medium and High Risk Areas'
+    plt.suptitle(main_title, fontsize=20, y=1.03, wrap=True)
 
-    path_out = os.path.join(folder_vis, 'cells.png')
+    path_out = os.path.join(folder_vis, 'landslide.png')
 
-    fig.set_size_inches(dimensions)
     plt.savefig(path_out,
         pad_inches=0.4,
         bbox_inches='tight',
@@ -164,16 +121,20 @@ def plot_cells(country, outline):
 
 if __name__ == '__main__':
 
-    countries = get_countries()
+    filename = 'countries.csv'
+    path = os.path.join(BASE_PATH, 'raw', filename)
+    countries = pd.read_csv(path, encoding='latin-1')
 
-    for idx, country in countries.iterrows(): #, total=countries.shape[0]):
+    for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['KEN']:#'MWI', 'GHA']:
+        if not country['iso3'] in ['AZE']:#, 'KEN']: #['KEN']
             continue
-        
-        iso3 = country['iso3']
 
-        print('-- {} --'.format(country['iso3']))
+        dimensions = (int(country['dimensions_x']), int(country['dimensions_y']))
+        iso3 = country['iso3']
+        country['figsize'] = dimensions
+
+        print('-- {} --'.format(iso3))
 
         folder_reports = os.path.join(REPORTS, iso3)
         if not os.path.exists(folder_reports):
@@ -187,14 +148,4 @@ if __name__ == '__main__':
         path = os.path.join(DATA_PROCESSED, iso3, filename)
         outline = gpd.read_file(path, crs='epsg:4326')
 
-        print('Plotting plot_fiber')
-        plot_fiber(country, outline)
-
-        print('Plotting plot_cells')
-        plot_cells(country, outline)
-
-
-
-
-
-
+        plot_landslide(country, outline, dimensions)
