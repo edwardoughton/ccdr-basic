@@ -56,8 +56,8 @@ def process_afterdark_data(country):
     filename = 'core_edges_existing.shp'
     path_output = os.path.join(folder, filename)
 
-    if os.path.exists(path_output):
-        return print('Existing fiber already processed')
+    # if os.path.exists(path_output):
+    #     return print('Existing fiber already processed')
 
     path = os.path.join(DATA_RAW, 'afterfiber', 'afterfiber.shp')
 
@@ -68,31 +68,33 @@ def process_afterdark_data(country):
     for item in shapes:
         if item['properties']['iso2'] == iso2:
             if item['geometry']['type'] == 'LineString':
-                if int(item['properties']['live']) == 1:
-                    data.append({
-                        'type': 'Feature',
-                        'geometry': {
-                            'type': 'LineString',
-                            'coordinates': item['geometry']['coordinates'],
-                        },
-                        'properties': {
-                            'operators': item['properties']['operator'],
-                            'source': 'existing'
-                        }
-                    })
+                # if int(item['properties']['live']) == 1:
+                data.append({
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': item['geometry']['coordinates'],
+                    },
+                    'properties': {
+                        'operators': item['properties']['operator'],
+                        'live': item['properties']['live'],
+                        # 'source': 'existing'
+                    }
+                })
 
             if item['geometry']['type'] == 'MultiLineString':
-                if int(item['properties']['live']) == 1:
+                # if int(item['properties']['live']) == 1:
 
-                    for line in list(MultiLineString(item['geometry']['coordinates']).geoms):
-                        data.append({
-                            'type': 'Feature',
-                            'geometry': mapping(line),
-                            'properties': {
-                                'operators': item['properties']['operator'],
-                                'source': 'existing'
-                            }
-                        })
+                for line in list(MultiLineString(item['geometry']['coordinates']).geoms):
+                    data.append({
+                        'type': 'Feature',
+                        'geometry': mapping(line),
+                        'properties': {
+                            'operators': item['properties']['operator'],
+                            'live': item['properties']['live'],
+                            # 'source': 'existing'
+                        }
+                    })
 
     if len(data) == 0:
         return print('No existing infrastructure')
@@ -129,4 +131,4 @@ def process_itu_data(country):
 
 if __name__ == '__main__':
 
-    process_fiber('KEN')
+    process_fiber('COD')

@@ -516,7 +516,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows(): #, total=countries.shape[0]):
 
-        if not country['iso3'] in ['BGD']:#'MWI', 'GHA']:
+        if not country['iso3'] in ['COD']:#'MWI', 'GHA']:
             continue
 
         create_regional_grid(country)
@@ -531,7 +531,7 @@ if __name__ == '__main__':
 
         dimensions = (int(country['dimensions_x']), int(country['dimensions_y']))
         iso3 = country['iso3']
-        country['figsize'] = (8,10)
+        country['figsize'] = dimensions#(8,10)
 
         print('-- {} --'.format(iso3))
 
@@ -550,6 +550,3 @@ if __name__ == '__main__':
         plot_population(country, outline, dimensions)
 
         plot_wealth(country, outline, dimensions)
-
-
-

@@ -599,14 +599,14 @@ def estimate_flooding_vuln_cells(country, asset_type, hazard_type):
 
         for idx, cell_row in cells.iterrows():
 
-            damage_low = query_fragility_curve(low, cell_row['depth'])
-            damage_baseline = query_fragility_curve(baseline, cell_row['depth'])
-            damage_high = query_fragility_curve(high, cell_row['depth'])
+            damage_low = query_fragility_curve(low, cell_row['value'])
+            damage_baseline = query_fragility_curve(baseline, cell_row['value'])
+            damage_high = query_fragility_curve(high, cell_row['value'])
 
             output.append({
                 gid_level: cell_row[gid_level],
                 # 'gid_id': cell_row['gid_id'],
-                'depth_m': cell_row['depth'],
+                'depth_m': cell_row['value'],
                 # 'length_m': cell_row['length_m'],
                 # 'total_m': cell_row['total_m'],
                 'asset_cost_usd': country['cell_cost_usd'],
@@ -713,8 +713,8 @@ if __name__ == '__main__':
     countries = pd.read_csv(path, encoding='latin-1')
 
     hazard_types = [
-        # 'inunriver',
-        # 'inuncoast',
+        'inunriver',
+        'inuncoast',
         'landslide'
     ]
 
@@ -725,7 +725,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['AZE']: #['AZE','KEN','']
+        if not country['iso3'] in ['COD']: #['AZE','KEN','']
             continue
 
         for asset_type in asset_types:

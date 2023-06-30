@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['AZE']:#, 'KEN']: #['KEN']
+        if not country['iso3'] in ['COD']:#, 'KEN']: #['KEN']
             continue
 
         dimensions = (int(country['dimensions_x']), int(country['dimensions_y']))
