@@ -61,14 +61,17 @@ def plot_fiber(country, outline):
     path_fiber = os.path.join(folder, filename)
     if os.path.exists(path_fiber):
         fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-        fiber.plot(color='orange', lw=1.5, ax=ax)
+        planned = fiber[fiber['live'] == 0]
+        planned.plot(color='yellow', legend=True, lw=1.5, ax=ax) 
+        live = fiber[fiber['live'] == 1]
+        live.plot(color='orange', legend=True, lw=1.5, ax=ax) 
 
     outline.plot(linewidth=1, alpha=1, facecolor="none", 
         legend=True, edgecolor='black', ax=ax)
     cx.add_basemap(ax, crs='epsg:4326')
 
     plt.legend(
-        ['Fiber'], 
+        ['Planned', 'Live'], 
         loc='lower right',
         title='Assets'
     )
@@ -168,7 +171,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows(): #, total=countries.shape[0]):
 
-        if not country['iso3'] in ['KEN']:#'MWI', 'GHA']:
+        if not country['iso3'] in ['COD']:#'MWI', 'GHA']:
             continue
         
         iso3 = country['iso3']

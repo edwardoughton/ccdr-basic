@@ -607,26 +607,26 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['AZE']: #,'AZE']: 'AZE', 'KEN'
+        if not country['iso3'] in ['COD']: #,'AZE']: 'AZE', 'KEN'
             continue
 
-        # print('processing process_country_shapes')
-        # process_country_shapes(country['iso3'])
+        print('processing process_country_shapes')
+        process_country_shapes(country['iso3'])
 
-        # print('processing process_regions')
-        # process_regions(country['iso3'], country['gid_region'])
+        print('processing process_regions')
+        process_regions(country['iso3'], country['gid_region'])
 
-        # print('processing coastal')
-        # process_inuncoast(country, scenarios, return_periods_coastal)
+        print('processing coastal')
+        process_inuncoast(country, scenarios, return_periods_coastal)
 
-        # print('extracting coastal')
-        # extract_inuncoast(country, scenarios, return_periods_coastal)
+        print('extracting coastal')
+        extract_inuncoast(country, scenarios, return_periods_coastal)
 
-        # print('processing cyclones')
-        # process_cyclones(country) #cyclones
+        print('processing cyclones')
+        process_cyclones(country) #cyclones
 
-        # print('processing droughts')
-        # process_droughts(country) #drought flooding
+        print('processing droughts')
+        process_droughts(country) #drought flooding
 
         print('processing landslides')
         process_landslides(country) #landslides
@@ -634,14 +634,14 @@ if __name__ == '__main__':
         print('extracting landslides')
         extract_landslides(country)
 
-        # print('processing rivers')
-        # process_inunriver(country, scenarios, models, return_periods_riverine) #river flooding
+        print('processing rivers')
+        process_inunriver(country, scenarios, models, return_periods_riverine) #river flooding
 
-        # print('extracting rivers')
-        # extract_inunriver(country, scenarios, models, return_periods_riverine)
+        print('extracting rivers')
+        extract_inunriver(country, scenarios, models, return_periods_riverine)
 
-        # print('processing wildfires')
-        # process_wildfires(country) #wildfires
+        print('processing wildfires')
+        process_wildfires(country) #wildfires
 
-        # print('extracting wildfires')
-        # extract_wildfires(country)
+        print('extracting wildfires')
+        extract_wildfires(country)
