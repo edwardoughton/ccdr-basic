@@ -9,6 +9,7 @@ To process most required data (country dependent):
 
 - run `dl.py` to download any required Aqueduct flooding layers. 
 - run `preprocess.py` to generate all boundary and other layers required.
+- run `fiber.py` to process the existing fiber layers. 
 - run `hazards.py` to generate all hazard layers required.
 
 To generate results and plots:
@@ -19,7 +20,6 @@ To generate results and plots:
 
 To visualize the results:
 
-- Each R script generates the vulnerability metrics for each country (e.g., AZE.r).
--  
+- Each R script generates the vulnerability metrics for each country (e.g., AZE.r or KEN.r).
 
 
