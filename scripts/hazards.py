@@ -607,7 +607,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['COD']: #,'AZE']: 'AZE', 'KEN'
+        if not country['iso3'] in ['KEN']: #,'AZE']: 'AZE', 'KEN'
             continue
 
         print('processing process_country_shapes')

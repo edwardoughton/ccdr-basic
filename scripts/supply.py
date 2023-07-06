@@ -61,10 +61,29 @@ def plot_fiber(country, outline):
     path_fiber = os.path.join(folder, filename)
     if os.path.exists(path_fiber):
         fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-        planned = fiber[fiber['live'] == 0]
-        planned.plot(color='yellow', legend=True, lw=1.5, ax=ax) 
-        live = fiber[fiber['live'] == 1]
-        live.plot(color='orange', legend=True, lw=1.5, ax=ax) 
+        if iso3 == 'COD':
+            planned = fiber[fiber['live'] == 0]
+            planned.plot(color='yellow', legend=True, lw=1.5, ax=ax) 
+            live = fiber[fiber['live'] == 1]
+            live.plot(color='orange', legend=True, lw=1.5, ax=ax) 
+        if iso3 == 'KEN':
+            filename = 'From road to NOFBI.shp'
+            folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+            path_fiber = os.path.join(folder, filename)
+            fiber = gpd.read_file(path_fiber, crs='epsg:3857')
+            fiber = fiber.to_crs(4326)
+            fiber['live'] = 0
+            fiber = fiber[['geometry', 'live']]
+            planned = fiber[fiber['live'] == 0]
+            planned.plot(color='yellow', legend=True, lw=1.5, ax=ax)
+            filename = 'core_edges_existing.shp'
+            folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+            path_fiber = os.path.join(folder, filename)
+            fiber = gpd.read_file(path_fiber, crs='epsg:4326')
+            fiber['live'] = 1
+            fiber = fiber[['geometry', 'live']]
+            live = fiber[fiber['live'] == 1]
+            live.plot(color='orange', legend=True, lw=1.5, ax=ax)
 
     outline.plot(linewidth=1, alpha=1, facecolor="none", 
         legend=True, edgecolor='black', ax=ax)
@@ -171,7 +190,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows(): #, total=countries.shape[0]):
 
-        if not country['iso3'] in ['COD']:#'MWI', 'GHA']:
+        if not country['iso3'] in ['KEN']:#'MWI', 'GHA']:
             continue
         
         iso3 = country['iso3']
@@ -193,8 +212,8 @@ if __name__ == '__main__':
         print('Plotting plot_fiber')
         plot_fiber(country, outline)
 
-        print('Plotting plot_cells')
-        plot_cells(country, outline)
+        # print('Plotting plot_cells')
+        # plot_cells(country, outline)
 
 
 

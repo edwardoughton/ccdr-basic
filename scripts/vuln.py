@@ -725,7 +725,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['COD']: #['AZE','KEN','']
+        if not country['iso3'] in ['KEN']: #['AZE','KEN','']
             continue
 
         for asset_type in asset_types:
@@ -743,7 +743,6 @@ if __name__ == '__main__':
                         aggregate_results_fiber(country, hazard_type)
                     elif hazard_type == 'landslide':
                         estimate_landslide_vuln_fiber(country, hazard_type) #results will be plotted in R. See vis/[iso3].r scripts
-
 
                 if asset_type == 'cells':
 

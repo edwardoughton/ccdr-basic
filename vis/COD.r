@@ -1085,3 +1085,159 @@ path = file.path(folder, 'figures', iso3, paste(iso3,'_cells_at_risk.png'))
 ggsave(path, units="in", width=8, height=6, dpi=300)
 
 
+
+
+
+
+
+
+
+
+######
+######
+######
+
+iso3 = 'COD'
+
+folder = dirname(rstudioapi::getSourceEditorContext()$path)
+data_directory = file.path(folder, '..', 'results', iso3, 'landslide', 'cells')
+setwd(data_directory)
+
+cells <- read.csv('assets_by_risk_cat.csv', header = T, sep = ",")
+cells$asset_type = 'cells'
+cells$perc = round((cells$count / sum(cells$count))*100,1)
+cells = select(cells, risk_cat, asset_type, perc)
+
+folder = dirname(rstudioapi::getSourceEditorContext()$path)
+data_directory = file.path(folder, '..', 'results', iso3, 'landslide', 'fiber')
+setwd(data_directory)
+
+fiber <- read.csv('assets_by_risk_cat.csv', header = T, sep = ",")
+fiber$asset_type = 'fiber'
+fiber$perc = round((fiber$length_m / sum(fiber$length_m))*100,1)
+fiber = select(fiber, risk_cat, asset_type, perc)
+
+data = rbind(cells, fiber)
+
+rm(fiber, cells)
+
+data$risk_cat = factor(data$risk_cat,
+                       levels=c("no_risk","low_risk","medium_risk", 'high_risk'),
+                       labels=c("No Risk","Low Risk","Medium Risk", 'High Risk')
+)
+
+data$asset_type = factor(data$asset_type,
+                         levels=c("cells","fiber"),
+                         labels=c("Mobile Cells","Fiber Network")
+)
+
+max_y_value = max(data$perc, na.rm = TRUE)
+
+plot1 = ggplot(data, aes(x=risk_cat, y=perc, fill=risk_cat)) + 
+  geom_bar(stat="identity", position = position_dodge()) +
+  geom_text(aes(label = paste(round(perc,2),"%")), size = 1.8,
+            position = position_dodge(1), vjust =-1, hjust =.4, angle = 0)+
+  theme(legend.position = '',
+        axis.text.x = element_text(angle=45, hjust=1)) +
+  labs(colour=NULL,
+       title = "Estimated Landslide Exposure for Mobile Cells and Fiber Assets in DRC",
+       subtitle = "Reported by Landslide Risk Category.", 
+       x = "Landslide Risk Category", y = "Proportion of Assets at Risk (%)") +
+  theme(panel.spacing = unit(0.6, "lines")) + 
+  expand_limits(y=0) +
+  guides(fill=guide_legend(ncol=3, title='Scenario')) +
+  scale_fill_viridis_d(direction=1) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+(max_y_value/4))) +
+  facet_grid(~asset_type)
+
+path = file.path(folder, 'figures', iso3, 'DRC_landslide_risk_relative.png')
+ggsave(path, units="in", width=8, height=4, dpi=300)
+
+iso3 = 'COD'
+
+folder = dirname(rstudioapi::getSourceEditorContext()$path)
+data_directory = file.path(folder, '..', 'results', iso3, 'landslide', 'cells')
+setwd(data_directory)
+
+cells <- read.csv('assets_by_risk_cat.csv', header = T, sep = ",")
+cells$asset_type = 'cells'
+# cells$perc = round((cells$count / sum(cells$count))*100,1)
+cells = select(cells, risk_cat, asset_type, count)
+
+cells$risk_cat = factor(cells$risk_cat,
+                        levels=c("no_risk","low_risk","medium_risk", 'high_risk'),
+                        labels=c("No Risk","Low Risk","Medium Risk", 'High Risk')
+)
+
+max_y_value = max(cells$count, na.rm = TRUE)
+
+plot2 = 
+  ggplot(cells, aes(x=risk_cat, y=count, fill=risk_cat)) + 
+  geom_bar(stat="identity", position = position_dodge()) +
+  geom_text(aes(label = scales::comma(count)), size = 1.8,
+            position = position_dodge(1), vjust =-1, hjust =.4, angle = 0) +
+  theme(legend.position = '',
+        axis.text.x = element_text(angle=45, hjust=1)) +
+  labs(colour=NULL,
+       title = "(A) Mobile Cell Exposure in DRC",
+       subtitle = "Reported by Landslide Risk Category.", 
+       x = "Landslide Risk Category", y = "Mobile Cells at Risk") +
+  theme(panel.spacing = unit(0.6, "lines")) + 
+  expand_limits(y=0) +
+  guides(fill=guide_legend(ncol=3, title='Scenario')) +
+  scale_fill_viridis_d(direction=1) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(labels = scales::comma, expand = c(0, 0), 
+                     limits=c(0, max_y_value+(max_y_value/4))) 
+
+
+folder = dirname(rstudioapi::getSourceEditorContext()$path)
+data_directory = file.path(folder, '..', 'results', iso3, 'landslide', 'fiber')
+setwd(data_directory)
+
+fiber <- read.csv('assets_by_risk_cat.csv', header = T, sep = ",")
+fiber$asset_type = 'fiber'
+fiber$length_km = fiber$length_m / 1e3 
+fiber = select(fiber, risk_cat, asset_type, length_km)
+
+fiber$risk_cat = factor(fiber$risk_cat,
+                        levels=c("no_risk","low_risk","medium_risk", 'high_risk'),
+                        labels=c("No Risk","Low Risk","Medium Risk", 'High Risk')
+)
+
+max_y_value = max(fiber$length_km, na.rm = TRUE)
+
+plot3 = 
+  ggplot(fiber, aes(x=risk_cat, y=length_km, fill=risk_cat)) + 
+  geom_bar(stat="identity", position = position_dodge()) +
+  geom_text(aes(label = scales::comma(length_km)), size = 1.8,
+            position = position_dodge(1), vjust =-1, hjust =.4, angle = 0) +
+  theme(legend.position = '',
+        axis.text.x = element_text(angle=45, hjust=1)) +
+  labs(colour=NULL,
+       title = "(B) Fiber Exposure in DRC",
+       subtitle = "Reported by Landslide Risk Category.", 
+       x = "Landslide Risk Category", y = "Fiber Network at Risk (Km)") +
+  theme(panel.spacing = unit(0.6, "lines")) + 
+  expand_limits(y=0) +
+  guides(fill=guide_legend(ncol=3, title='Scenario')) +
+  scale_fill_viridis_d(direction=1) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(labels = scales::comma, expand = c(0, 0), 
+                     limits=c(0, max_y_value+(max_y_value/4))) 
+
+panel = ggarrange(
+  plot2, 
+  plot3, 
+  # labels = c("A", "B"),
+  # common.legend = TRUE,
+  # legend = 'bottom',
+  ncol = 2, nrow = 1)
+
+
+path = file.path(folder, 'figures', iso3, 'DRC_landslide_risk_absolute.png')
+ggsave(path, units="in", width=8, height=4, dpi=300)
+
+
+
