@@ -14,10 +14,12 @@ import pandas as pd
 import geopandas as gpd
 import pyproj
 from shapely.ops import transform
-from shapely.geometry import Point, box
+from shapely.geometry import Point, box, LineString
 import rasterio
 from rasterio.mask import mask
 from tqdm import tqdm
+import openpyxl
+import numpy as np
 
 from misc import get_countries, process_country_shapes, process_regions, get_regions, get_scenarios
 from fiber import process_fiber
@@ -49,6 +51,9 @@ def run_preprocessing(country):
 
     print('Working on create_national_sites_shp')
     create_national_sites_shp(iso3)
+
+    print('Working on process_flooding_layers')
+    process_flooding_layers(country)
 
     print('Working on process_fiber')
     process_fiber(iso3)
@@ -87,10 +92,13 @@ def run_preprocessing(country):
             #print('Working on create_regional_sites_layer')
             create_regional_sites_layer(iso3, 2, region)
 
-    # print('Convert cell estimates to site estimates')
-    # gid_id = "GID_{}".format(regional_level)
-    # region_ids = regions_df[gid_id].unique()
-    # for region in region_ids:
+    gid_id = "GID_{}".format(regional_level)
+    region_ids = regions_df[gid_id].unique()
+    print("processing regional flood layers")
+    for region in region_ids:
+        # print(region)
+        # region = region['GID_{}'.format(regional_level)]
+        process_regional_flooding_layers(country, region)
 
     #     polygon = regions_df[regions_df[gid_id] == region]
 
@@ -232,6 +240,125 @@ def create_national_sites_shp(iso3):
         output = gpd.GeoDataFrame.from_features(output, crs='epsg:4326')
 
         output.to_file(path_shp)
+
+
+def process_flooding_layers(country):
+    """
+    Loop to process all flood layers.
+
+    """
+    scenarios = get_scenarios()
+    iso3 = country['iso3']
+    name = country['country']
+
+    hazard_dir = os.path.join(DATA_RAW, 'flood_hazard')
+
+    failures = []
+
+    for scenario in scenarios:
+
+        #if 'river' in scenario:
+        #    continue
+
+        # if not os.path.basename(scenario) == 'inunriver_rcp4p5_0000HadGEM2-ES_2050_rp00500.tif':
+        #    continue
+
+        filename = os.path.basename(scenario).replace('.tif','')
+        path_in = os.path.join(hazard_dir, filename + '.tif')
+
+        folder = os.path.join(DATA_PROCESSED, iso3, 'hazards', 'flooding')
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        path_out = os.path.join(folder, filename + '.tif')
+
+        if os.path.exists(path_out):
+            continue
+
+        print('--{}: {}'.format(name, filename))
+
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        try:
+            process_flood_layer(country, path_in, path_out)
+        except:
+            print('{} failed: {}'.format(country['iso3'], scenario))
+            failures.append({
+                 'iso3': country['iso3'],
+                 'filename': filename
+            })
+            continue
+
+    return
+
+
+def process_flood_layer(country, path_in, path_out):
+    """
+    Clip the hazard layer to the chosen country boundary
+    and place in desired country folder.
+
+    Parameters
+    ----------
+    country : dict
+        Contains all desired country information.
+    path_in : string
+        The path for the chosen global hazard file to be processed.
+    path_out : string
+        The path to write the clipped hazard file.
+
+    """
+    iso3 = country['iso3']
+    regional_level = country['gid_region']
+
+    hazard = rasterio.open(path_in, 'r+', BIGTIFF='YES')
+
+    hazard.nodata = 255
+    hazard.crs.from_epsg(4326)
+
+    iso3 = country['iso3']
+    path_country = os.path.join(DATA_PROCESSED, iso3,
+        'national_outline.shp')
+
+    if os.path.exists(path_country):
+        country = gpd.read_file(path_country)
+    else:
+        print('Must generate national_outline.shp first' )
+
+    # if os.path.exists(path_out):
+    #     return
+
+    geo = gpd.GeoDataFrame()
+
+    geo = gpd.GeoDataFrame({'geometry': country['geometry']})
+
+    coords = [json.loads(geo.to_json())['features'][0]['geometry']]
+
+    out_img, out_transform = mask(hazard, coords, crop=True)
+
+    depths = []
+
+    for idx, row in enumerate(out_img[0]):
+        for idx2, i in enumerate(row):
+            if i > 0.001 and i < 150:
+                depths.append(i)
+            else:
+                continue
+    if sum(depths) < 0.01:
+        return
+
+    out_meta = hazard.meta.copy()
+
+    out_meta.update({"driver": "GTiff",
+                    "height": out_img.shape[1],
+                    "width": out_img.shape[2],
+                    "transform": out_transform,
+                    "crs": 'epsg:4326',
+                    "compress": 'lzw'})
+
+    with rasterio.open(path_out, "w", **out_meta) as dest:
+            dest.write(out_img)
+
+    return
 
 
 # def segment_by_gid_1(iso3, level):
@@ -1010,16 +1137,126 @@ def convert_to_gpd_df(data):
     return data
 
 
+def preprocess_supply_data():
+    """
+    
+    """
+    preprocess_kenya_huduma_data()
+
+    preprocess_kenya_wifi_data()
+
+    return
+
+
+def preprocess_kenya_huduma_data():
+    """
+    
+    """
+    filename = "Huduma Centres Locations and Coordinates.csv"
+    folder = os.path.join(BASE_PATH,'raw', 'kenya_supply_data')
+    path_in = os.path.join(folder, filename)
+    data = pd.read_csv(path_in)
+    data = data[['GPS COORDINATES','HUDUMA KENYA SITES','PHYSICAL LOCATIONS']]
+    data = data.dropna()
+    data = data.to_dict('records')
+
+    output = []
+
+    for item in data:
+
+        x1, y1 = item['GPS COORDINATES'].split(',')
+        
+        geom = Point(float(y1),float(x1))
+        
+        output.append({
+            'geometry': geom,
+            'properties': {
+                'sites': item['HUDUMA KENYA SITES'],
+                'locations': item['PHYSICAL LOCATIONS']
+            }
+        })
+
+    output = gpd.GeoDataFrame.from_features(output)
+
+    filename = 'huduma_centers_locations.shp'
+    folder = os.path.join(DATA_PROCESSED, 'KEN', 'network_existing')
+    path_out = os.path.join(folder, filename)
+    output.to_file(path_out)
+
+    return
+
+
+def preprocess_kenya_wifi_data():
+    """
+    
+    """
+    filename = "PUBLIC WI-FI 10 SITES PER COUNTY FINAL.xlsx"
+    folder = os.path.join(BASE_PATH,'raw', 'kenya_supply_data')
+    path_in = os.path.join(folder, filename)
+    data = pd.read_excel(path_in,sheet_name = None, header = 1)
+    sheet_names = [i for i in data]
+
+    data = pd.read_excel(path_in, sheet_name=sheet_names, header=1)
+    data = pd.concat(data.values(), ignore_index=True)
+
+    data = data[['Proposed Public WIFI site', 'Coordinates', 
+                 'Nearest NOFBI Node', 'Coordinates.1']]
+    # data = data.dropna()
+
+    data = data.to_dict('records')
+
+    output = []
+
+    for item in data:
+
+        coords1 = str(item['Coordinates']).replace('(','').replace(')','')
+        coords2 = str(item['Coordinates.1']).replace('(','').replace(')','')
+
+        try:
+            x1, y1 = coords1.split(',')
+            x1, y1 = float(x1), float(y1)
+        except:
+            continue
+        try:
+            x2, y2 = coords2.split(',')
+            x2, y2 = float(x2), float(y2)
+        except:
+            x2, y2 = 0, 0
+
+        output.append({
+            'geometry': Point(float(y1),float(x1)),
+            'nofbi_site': Point(float(y2),float(x2)),
+            'properties': {
+                'proposed_public_site': item['Proposed Public WIFI site'],
+                'nearest_nofbi_site': item['Nearest NOFBI Node'],
+            }
+        })
+
+    output = gpd.GeoDataFrame.from_features(output)
+
+    filename = 'public_wifi_sites.shp'
+    folder = os.path.join(DATA_PROCESSED, 'KEN', 'network_existing')
+    path_out = os.path.join(folder, filename)
+    output.to_file(path_out)
+
+    return
+
+
 if __name__ == "__main__":
 
     filename = "countries.csv"
-    path = os.path.join(DATA_RAW, filename)
+    path = os.path.join(BASE_PATH, 'raw', filename)
 
     countries = pd.read_csv(path, encoding='latin-1')
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] == "KEN":
+        if not country['iso3'] in ['KEN', 
+                                   'ETH', 'DJI', 'SOM', 'SSD','MDG'
+                                   ]: 
             continue
 
         run_preprocessing(country)
+    
+        if country['iso3'] == 'KEN':
+            preprocess_supply_data()

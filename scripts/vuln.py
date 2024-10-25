@@ -53,7 +53,7 @@ def intersect_hazard_fiber(country, hazard_type):
         print("Working on {}, {}".format(hazard_filename, hazard_type))
 
         filename = 'core_edges_existing.shp'
-        folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+        folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'country_data')
         path_fiber = os.path.join(folder, filename)
         fiber = gpd.read_file(path_fiber, crs='epsg:4326')
         fiber_length = fiber.to_crs(3857)
@@ -64,7 +64,10 @@ def intersect_hazard_fiber(country, hazard_type):
 
         #intersect fiber with hazard.
         fiber = gpd.overlay(fiber, hazard_layer, how='intersection', keep_geom_type=True) #, make_valid=True
-
+        
+        if len(fiber) == 0:
+            return
+        
         #intersect fiber with regional layer to provide GID id.
         fiber = gpd.overlay(fiber, regions, how='intersection', keep_geom_type=True) #, make_valid=True
 
@@ -84,8 +87,8 @@ def intersect_hazard_fiber(country, hazard_type):
         if not os.path.exists(results_folder):
             os.makedirs(results_folder)
         path_out = os.path.join(results_folder, "fiber_length.csv")
-        if os.path.exists(path_out):
-            continue
+        # if os.path.exists(path_out):
+        #     continue
         to_csv = fiber_length[['length_m']] #'GID_1',
         to_csv.to_csv(path_out)
 
@@ -391,6 +394,8 @@ def intersect_hazard_cells(country, hazard_type): #, scenarios
     for hazard_filename in hazard_filenames:
 
         if not ".tif" in hazard_filename:
+            continue
+        if ".xml" in hazard_filename:
             continue
 
         # if not "inunriver_rcp8p5_MIROC-ESM-CHEM_2080_rp01000" in hazard_filename:
@@ -719,13 +724,20 @@ if __name__ == '__main__':
     ]
 
     asset_types = [
-        'fiber',
+        # 'fiber',
         'cells'
     ]
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['KEN']: #['AZE','KEN','']
+        if not country['iso3'] in [
+            # 'KEN', 
+            # 'ETH', 
+            'DJI',
+            # 'SOM', 
+            # 'SSD', 
+            # 'MDG'
+            ]:
             continue
 
         for asset_type in asset_types:

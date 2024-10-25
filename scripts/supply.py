@@ -57,15 +57,20 @@ def plot_fiber(country, outline):
     ax.set_ylim(miny-0.1, maxy+.1)
 
     filename = 'core_edges_existing.shp'
-    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'country_data')
     path_fiber = os.path.join(folder, filename)
     if os.path.exists(path_fiber):
         fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-        if iso3 == 'COD':
-            planned = fiber[fiber['live'] == 0]
+        if iso3 in ['BWA','ETH','DJI','SOM','SSD','MDG']:
+            planned = fiber[fiber['live'] == 'planned']
             planned.plot(color='yellow', legend=True, lw=1.5, ax=ax) 
-            live = fiber[fiber['live'] == 1]
+            live = fiber[fiber['live'] == 'live']
             live.plot(color='orange', legend=True, lw=1.5, ax=ax) 
+        # if iso3 == 'COD':
+        #     planned = fiber[fiber['live'] == 0]
+        #     planned.plot(color='yellow', legend=True, lw=1.5, ax=ax) 
+        #     live = fiber[fiber['live'] == 1]
+        #     live.plot(color='orange', legend=True, lw=1.5, ax=ax) 
         if iso3 == 'KEN':
             filename = 'From road to NOFBI.shp'
             folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
@@ -87,7 +92,11 @@ def plot_fiber(country, outline):
 
     outline.plot(linewidth=1, alpha=1, facecolor="none", 
         legend=True, edgecolor='black', ax=ax)
-    cx.add_basemap(ax, crs='epsg:4326')
+    
+    zoom_level = 7
+    if iso3 == 'DJI':
+        zoom_level = 9
+    cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=zoom_level)
 
     plt.legend(
         ['Planned', 'Live'], 
@@ -106,7 +115,7 @@ def plot_fiber(country, outline):
     plt.savefig(path_out,
         pad_inches=0.4,
         bbox_inches='tight',
-        dpi=600,
+        dpi=600 
     )
     plt.close()
 
@@ -135,7 +144,11 @@ def plot_cells(country, outline):
 
     outline.plot(linewidth=1, alpha=1, facecolor="none", 
         legend=True, edgecolor='black', ax=ax)
-    cx.add_basemap(ax, crs='epsg:4326')
+    
+    zoom_level = 7
+    if iso3 == 'DJI':
+        zoom_level = 9
+    cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=zoom_level)
 
     filename = '{}.csv'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
@@ -186,13 +199,22 @@ def plot_cells(country, outline):
 
 if __name__ == '__main__':
 
-    countries = get_countries()
+    filename = 'countries.csv'
+    path = os.path.join(BASE_PATH, 'raw', filename)
+    countries = pd.read_csv(path, encoding='latin-1')
 
     for idx, country in countries.iterrows(): #, total=countries.shape[0]):
 
-        if not country['iso3'] in ['KEN']:#'MWI', 'GHA']:
+        if not country['iso3'] in [
+            'KEN', 
+            'ETH', 
+            'DJI',
+            'SOM', 
+            'SSD', 
+            'MDG'
+            ]:
             continue
-        
+
         iso3 = country['iso3']
 
         print('-- {} --'.format(country['iso3']))
@@ -212,8 +234,8 @@ if __name__ == '__main__':
         print('Plotting plot_fiber')
         plot_fiber(country, outline)
 
-        # print('Plotting plot_cells')
-        # plot_cells(country, outline)
+        print('Plotting plot_cells')
+        plot_cells(country, outline)
 
 
 

@@ -4,7 +4,7 @@ library(tidyverse)
 # install.packages("ggpubr")
 library(ggpubr)
 
-iso3 = 'KEN'
+iso3 = 'ETH'
 
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 data_directory = file.path(folder, '..', 'results', iso3,  'inunriver', 'fiber', 'csv_files', 'aggregated')
@@ -156,7 +156,7 @@ plot1 = ggplot(data_aggregated,
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
-       title = "Estimated Riverine Flooding Direct Damage Cost to Fiber Networks in Kenya",
+       title = "Estimated Riverine Flooding Direct Damage Cost to Fiber Networks in Ethiopia",
        subtitle = "Reported by Annual Probability and Climate Scenario for 2080.", 
        x = "Annual Probability of Occurance (%)", y = "Direct Damage (US$ Millions)", 
        fill="Climate Scenario") +
@@ -174,7 +174,7 @@ ggsave(path, units="in", width=8, height=6, dpi=300)
 ######
 ######
 ######
-iso3 = 'KEN'
+iso3 = 'ETH'
 
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 data_directory = file.path(folder, '..', 'results', iso3,  'inunriver', 'fiber', 'csv_files')
@@ -294,7 +294,7 @@ plot1 =
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
-       title = "Estimated Riverine Flooding Damage to Fiber Networks in Kenya",
+       title = "Estimated Riverine Flooding Damage to Fiber Networks in Ethiopia",
        subtitle = "Reported by Annual Probability and Climate Scenario for 2080.", 
        x = "Annual Probability of Occurance (%)", y = "Fiber at Risk (%)", fill="Climate Scenario") +
   theme(panel.spacing = unit(0.6, "lines")) + 
@@ -335,7 +335,7 @@ plot1 =
    theme(legend.position = 'bottom',
          axis.text.x = element_text(angle=45, hjust=1)) +
    labs(colour=NULL,
-        title = "Estimated Riverine Flooding Damage to Fiber Networks in Kenya",
+        title = "Estimated Riverine Flooding Damage to Fiber Networks in Ethiopia",
         subtitle = "Reported by Annual Probability and Climate Scenario for 2080.", 
         x = "Annual Probability of Occurance (%)", y = "Fiber at Risk (km)", fill="Climate Scenario") +
    theme(panel.spacing = unit(0.6, "lines")) + 
@@ -360,7 +360,7 @@ ggsave(path, units="in", width=8, height=6, dpi=300)
 ###########
 ###########
 
-iso3 = 'KEN'
+iso3 = 'ETH'
 
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 
@@ -514,7 +514,7 @@ plot1 = ggplot(data_aggregated,
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
-       title = "Estimated Riverine Flooding Direct Damage Cost to Fiber Networks in Kenya",
+       title = "Estimated Riverine Flooding Direct Damage Cost to Fiber Networks in Ethiopia",
        subtitle = "Reported by Annual Probability and Climate Scenario for 2080.", 
        x = "Annual Probability of Occurance (%)", y = "Direct Damage (US$ Millions)", fill="Climate Scenario") +
   theme(panel.spacing = unit(0.6, "lines")) + 
@@ -531,7 +531,7 @@ ggsave(path, units="in", width=8, height=6, dpi=300)
 ######
 ######
 ######
-iso3 = 'KEN'
+iso3 = 'ETH'
 
 folder = dirname(rstudioapi::getSourceEditorContext()$path)
 data_directory = file.path(folder, '..', 'results', iso3, 'inunriver', 'fiber', 'csv_files')
@@ -651,7 +651,7 @@ max_y_value = max(data_aggregated$fiber_at_risk_perc_max, na.rm = TRUE)
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
-       title = "Estimated Riverine Flooding Damage to Fiber Networks in Kenya",
+       title = "Estimated Riverine Flooding Damage to Fiber Networks in Ethiopia",
        subtitle = "Reported by Annual Probability and Climate Scenario for 2080.", 
        x = "Annual Probability of Occurance (%)", y = "Fiber at Risk (%)", fill="Climate Scenario") +
   theme(panel.spacing = unit(0.6, "lines")) + 
@@ -692,7 +692,7 @@ max_y_value = max(data_aggregated$fiber_at_risk_perc_max, na.rm = TRUE)
    theme(legend.position = 'bottom',
          axis.text.x = element_text(angle=45, hjust=1)) +
    labs(colour=NULL,
-        title = "Estimated Riverine Flooding Damage to Fiber Networks in Kenya",
+        title = "Estimated Riverine Flooding Damage to Fiber Networks in Ethiopia",
         subtitle = "Reported by Annual Probability and Climate Scenario for 2080.", 
         x = "Annual Probability of Occurance (%)", y = "Fiber at Risk (km)", fill="Climate Scenario") +
    theme(panel.spacing = unit(0.6, "lines")) + 
@@ -717,7 +717,7 @@ ggsave(path, units="in", width=8, height=6, dpi=300)
 ###########
 ###########
 
-iso3 = 'KEN'
+iso3 = 'ETH'
 
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 
@@ -871,7 +871,7 @@ plot1 = ggplot(data_aggregated,
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
-       title = "Estimated Riverine Flooding Direct Damage Cost to Mobile Cells in Kenya",
+       title = "Estimated Riverine Flooding Direct Damage Cost to Mobile Cells in Ethiopia",
        subtitle = "Reported by Annual Probability and Climate Scenario for 2080.", 
        x = "Annual Probability of Occurance (%)", y = "Direct Damage (US$ Millions)", 
        fill="Climate Scenario") +
@@ -889,7 +889,7 @@ ggsave(path, units="in", width=8, height=6, dpi=300)
 ######
 ######
 
-iso3 = 'KEN'
+iso3 = 'ETH'
 
 folder = dirname(rstudioapi::getSourceEditorContext()$path)
 data_directory = file.path(folder, '..', 'results', iso3, 'inunriver', 'cells', 'csv_files')
@@ -1001,7 +1001,7 @@ plot1 =
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
-       title = "Estimated Riverine Flooding Damage to Mobile Cells in Kenya",
+       title = "Estimated Riverine Flooding Damage to Mobile Cells in Ethiopia",
        subtitle = "Reported by Annual Probability and Climate Scenario for 2080.", 
        x = "Annual Probability of Occurance (%)", y = "Mobile Cells at Risk (%)", fill="Climate Scenario") +
   theme(panel.spacing = unit(0.6, "lines")) + 
@@ -1042,7 +1042,7 @@ plot2 =
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
-       title = "Estimated Riverine Flooding Damage to Mobile Cells in Kenya",
+       title = "Estimated Riverine Flooding Damage to Mobile Cells in Ethiopia",
        subtitle = "Reported by Annual Probability and Climate Scenario for 2080.", 
        x = "Annual Probability of Occurance (%)", y = "Mobile Cells at Risk", 
        fill="Climate Scenario") +
@@ -1068,7 +1068,7 @@ ggsave(path, units="in", width=8, height=6, dpi=300)
 ######
 ######
 
-iso3 = 'KEN'
+iso3 = 'ETH'
 
 folder = dirname(rstudioapi::getSourceEditorContext()$path)
 data_directory = file.path(folder, '..', 'results', iso3, 'landslide', 'cells')
@@ -1111,7 +1111,7 @@ plot1 = ggplot(data, aes(x=risk_cat, y=perc, fill=risk_cat)) +
   theme(legend.position = '',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
-       title = "Estimated Landslide Exposure for Mobile Cells and Fiber Assets in Kenya",
+       title = "Estimated Landslide Exposure for Mobile Cells and Fiber Assets in Ethiopia",
        subtitle = "Reported by Landslide Risk Category.", 
        x = "Landslide Risk Category", y = "Proportion of Assets at Risk (%)") +
   theme(panel.spacing = unit(0.6, "lines")) + 
@@ -1122,10 +1122,10 @@ plot1 = ggplot(data, aes(x=risk_cat, y=perc, fill=risk_cat)) +
   scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+(max_y_value/4))) +
   facet_grid(~asset_type)
 
-path = file.path(folder, 'figures', iso3, 'KEN_landslide_risk_relative.png')
+path = file.path(folder, 'figures', iso3, 'ETH_landslide_risk_relative.png')
 ggsave(path, units="in", width=8, height=4, dpi=300)
 
-iso3 = 'KEN'
+iso3 = 'ETH'
 
 folder = dirname(rstudioapi::getSourceEditorContext()$path)
 data_directory = file.path(folder, '..', 'results', iso3, 'landslide', 'cells')
@@ -1151,7 +1151,7 @@ plot2 =
   theme(legend.position = '',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
-       title = "(A) Mobile Cell Exposure in Kenya",
+       title = "(A) Mobile Cell Exposure in Ethiopia",
        subtitle = "Reported by Landslide Risk Category.", 
        x = "Landslide Risk Category", y = "Mobile Cells at Risk") +
   theme(panel.spacing = unit(0.6, "lines")) + 
@@ -1187,7 +1187,7 @@ plot3 =
   theme(legend.position = '',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
-       title = "(B) Fiber Exposure in Kenya",
+       title = "(B) Fiber Exposure in Ethiopia",
        subtitle = "Reported by Landslide Risk Category.", 
        x = "Landslide Risk Category", y = "Fiber Network at Risk (Km)") +
   theme(panel.spacing = unit(0.6, "lines")) + 
@@ -1206,7 +1206,7 @@ panel = ggarrange(
   # legend = 'bottom',
   ncol = 2, nrow = 1)
 
-path = file.path(folder, 'figures', iso3, 'KEN_landslide_risk_absolute.png')
+path = file.path(folder, 'figures', iso3, 'ETH_landslide_risk_absolute.png')
 ggsave(path, units="in", width=8, height=4, dpi=300)
 
 

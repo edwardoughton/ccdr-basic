@@ -252,6 +252,9 @@ def process_regional_wealth(country):
     folder = os.path.join(DATA_RAW, 'relative_wealth_index')
     path_in = os.path.join(folder, filename)
 
+    if not os.path.exists(path_in):
+        return
+
     folder_out = os.path.join(DATA_PROCESSED, country['iso3'], 'relative_wealth_index', 'regions')
 
     if not os.path.exists(folder_out):
@@ -398,6 +401,7 @@ def plot_population(country, outline, dimensions):
 
     minx, miny, maxx, maxy = outline.total_bounds
     buffer = country['buffer']
+
     ax.set_xlim(minx-(buffer-1), maxx+(buffer+1))
     ax.set_ylim(miny-0.1, maxy+.1)
 
@@ -412,9 +416,15 @@ def plot_population(country, outline, dimensions):
     grid['pop_density_km2'] =  grid['population'] / grid['area_km2']
     grid = grid.to_crs('epsg:4326')
 
-    bins = [-1e6, 10, 50, 100, 200, 300, 400, 500, 600, 700, 1e12]
-    labels = ['<10 $km^2$','<50 $km^2$','<100 $km^2$','<200 $km^2$',
-              '<300 $km^2$', '<400 $km^2$', '<500 $km^2$', '<600 $km^2$', '<700 $km^2$', '>700 $km^2$']
+    if iso3 == 'BWA':
+        # bins = [-1e6, 2, 4, 6, 8, 10, 12, 1e12]
+        bins = [-1e6, 5, 10, 15, 20, 25, 30, 35, 40, 45, 1e12]
+        labels = ['<5 $km^2$','<10 $km^2$','<15 $km^2$','<20 $km^2$',
+                '<25 $km^2$', '<30 $km^2$', '<35 $km^2$', '<40 $km^2$', '<45 $km^2$', '>45 $km^2$']
+    else:
+        bins = [-1e6, 10, 50, 100, 200, 300, 400, 500, 600, 700, 1e12]
+        labels = ['<10 $km^2$','<50 $km^2$','<100 $km^2$','<200 $km^2$',
+                '<300 $km^2$', '<400 $km^2$', '<500 $km^2$', '<600 $km^2$', '<700 $km^2$', '>700 $km^2$']
 
     #create a new variable with our bin labels
     grid['bin'] = pd.cut(
@@ -472,11 +482,13 @@ def plot_wealth(country, outline, dimensions):
     folder = os.path.join(DATA_PROCESSED, iso3, 'relative_wealth_index')
     filename = 'rwi_grid.shp'
     path1 = os.path.join(folder, filename)
+    if not os.path.exists(path1):
+        return print(f'rwi_grid.shp did not exist for {iso3}')
     grid = gpd.read_file(path1, crs='epsg:4326')
 
     bins = [-1e6, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, 1e12]
-    labels = ['Decile 1','Decile 2','Decile 3','Decile 4',
-              'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 'Decile 10']
+    labels = ['Decile 1 (Lowest)','Decile 2','Decile 3','Decile 4',
+              'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 'Decile 10 (Highest)']
 
     #create a new variable with our bin labels
     grid['bin'] = pd.cut(
@@ -515,8 +527,8 @@ if __name__ == '__main__':
     countries = get_countries()
 
     for idx, country in countries.iterrows(): #, total=countries.shape[0]):
-
-        if not country['iso3'] in ['KEN']:#'MWI', 'GHA']:
+        #Kenya, Ethiopia, Djibouti, Somalia, South Sudan, and Madagascar
+        if not country['iso3'] in ['KEN', 'ETH', 'DJI','SOM', 'SSD', 'MDG']: 
             continue
 
         create_regional_grid(country)
