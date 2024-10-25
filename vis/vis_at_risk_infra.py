@@ -46,8 +46,9 @@ def plot_fiber_at_risk(country, outline, dimensions, shapes):
     filename = 'core_edges_existing.shp'
     folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
     path_fiber = os.path.join(folder, filename)
-    fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-    fiber = fiber[['geometry']]
+    if os.path.exists(path_fiber):
+        fiber = gpd.read_file(path_fiber, crs='epsg:4326')
+        fiber = fiber[['geometry']]
     # fiber_length = fiber.to_crs(3857)
     # fiber_length['length_m'] = fiber_length['geometry'].length
     # fiber_length_km = round(fiber_length['length_m'].sum()/1e3,0)
@@ -55,8 +56,9 @@ def plot_fiber_at_risk(country, outline, dimensions, shapes):
     filename = 'inunriver_rcp8p5_MIROC-ESM-CHEM_2080_rp01000.shp'
     folder = os.path.join(DATA_PROCESSED, iso3, 'results', 'fiber', 'shapes')
     path_at_risk = os.path.join(folder, filename)
-    fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-    fiber = fiber[['geometry']]
+    if os.path.exists(path_at_risk):
+        fiber = gpd.read_file(path_fiber, crs='epsg:4326')
+        fiber = fiber[['geometry']]
 
     # scenarios = data['climatescenario'].unique()
     # probabilities = data['probability'].unique()
@@ -127,7 +129,14 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['KEN']:#, 'KEN']: #['KEN']
+        if not country['iso3'] in [
+            'KEN', 
+            'ETH', 
+            'DJI', 
+            'SOM', 
+            'SSD', 
+            'MDG' 
+            ]:
             continue
 
         dimensions = (int(country['dimensions_y']), int(country['dimensions_x']))

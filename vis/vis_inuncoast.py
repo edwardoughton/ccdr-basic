@@ -196,7 +196,7 @@ def plot_inunriver(country, outline, dimensions,
                         cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=z)
 
                     filename = 'core_edges_existing.shp'
-                    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'country_data',source)
+                    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', source)
                     path_fiber = os.path.join(folder, filename)
                     if os.path.exists(path_fiber):
                         fiber = gpd.read_file(path_fiber, crs='epsg:4326')
@@ -366,10 +366,10 @@ if __name__ == '__main__':
     ]
 
     models = [
-        # '00000NorESM1-M',
-        # '0000GFDL-ESM2M',
-        # '0000HadGEM2-ES',
-        # '00IPSL-CM5A-LR',
+        '00000NorESM1-M',
+        '0000GFDL-ESM2M',
+        '0000HadGEM2-ES',
+        '00IPSL-CM5A-LR',
         'MIROC-ESM-CHEM',
     ]
 

@@ -82,12 +82,13 @@ def plot_regions_by_geotype(country, regions, path_out):
     data['population_km2'] = round(data['population_total'] / data['area_km2'], 2)
     data = data[['GID_id', 'population_km2']]
 
-    GID_level = 'GID_{}'.format(country['lowest'])
+    GID_level = 'GID_{}'.format(country['gid_region'])
     regions = regions[[GID_level, 'geometry']]#[:1000]
     regions = regions.copy()
 
     regions = regions.merge(data, left_on=GID_level, right_on='GID_id')
     regions.reset_index(drop=True, inplace=True)
+    minx, miny, maxx, maxy = regions.total_bounds
 
     metric = 'population_km2'
 
@@ -115,7 +116,6 @@ def plot_regions_by_geotype(country, regions, path_out):
     sns.set_style("ticks")
     fig, ax = plt.subplots(1, 1, figsize=country['figsize'])
     fig.set_facecolor('gainsboro')
-    minx, miny, maxx, maxy = regions.total_bounds
 
     ax.set_xlim(minx-1, maxx+1)
     ax.set_ylim(miny-1, maxy+1)
@@ -617,12 +617,19 @@ def single_extreme_plot(country, regions, outline, path):
 if __name__ == '__main__':
 
     filename = 'countries.csv'
-    path = os.path.join(DATA_RAW, filename)
+    path = os.path.join(BASE_PATH, 'raw', filename)
     countries = pd.read_csv(path, encoding='latin-1')
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['KEN']: #['MWI','GHA']
+        if not country['iso3'] in [
+            'KEN', 
+            # 'ETH', 
+            # 'DJI', 
+            # 'SOM', 
+            # 'SSD', 
+            # 'MDG' 
+            ]:
             continue
 
         iso3 = country['iso3']
@@ -638,7 +645,7 @@ if __name__ == '__main__':
         if not os.path.exists(folder_vis):
             os.makedirs(folder_vis)
 
-        filename = 'regions_{}_{}.shp'.format(country['lowest'], iso3)
+        filename = 'regions_{}_{}.shp'.format(country['gid_region'], iso3)
         path = os.path.join(DATA_PROCESSED, iso3, 'regions', filename)
         shapes = gpd.read_file(path, crs='epsg:4326')
 
@@ -647,8 +654,8 @@ if __name__ == '__main__':
         outline = gpd.read_file(path, crs='epsg:4326')
 
         # path_out = os.path.join(folder_vis, '{}_by_pop_density.png'.format(iso3))
-        # if not os.path.exists(path):
-        #     plot_regions_by_geotype(country, shapes, path_out)
+        # # if not os.path.exists(path):
+        # plot_regions_by_geotype(country, shapes, path_out)
 
         # path_out = os.path.join(folder_vis, '{}_cells_by_region_panel.tiff'.format(iso3))
         # if not os.path.exists(path):
