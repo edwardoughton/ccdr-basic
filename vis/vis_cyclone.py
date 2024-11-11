@@ -49,8 +49,8 @@ def process_inunriver(country, scenarios, models, return_periods):
                 filename = 'inunriver_{}_{}_2080_{}.tif'.format(scenario, model, rp)
                 path_out = os.path.join(folder, filename)
 
-                # if os.path.exists(path_out):
-                #     continue
+                if os.path.exists(path_out):
+                    continue
 
                 path = os.path.join(DATA_RAW, 'flood_hazard', filename)
 
@@ -150,10 +150,9 @@ def extract_inunriver(country, scenarios, models, return_periods):
     return
 
 
-def plot_inunriver(country, outline, dimensions,
-    scenarios, models, return_periods):
+def plot_cyclone(country, outline, dimensions):
     """
-    Plot river uncovered population by region.
+    Plot cyclone by region.
 
     """
     iso3 = country['iso3']
@@ -163,120 +162,110 @@ def plot_inunriver(country, outline, dimensions,
     if country['iso3'] == 'DJI':
         z = 9
 
-    folder_vis = os.path.join(VIS, iso3, 'riverine')
+    folder_vis = os.path.join(VIS, iso3, 'cyclones')
     if not os.path.exists(folder_vis):
         os.makedirs(folder_vis)
 
-    for scenario in scenarios:
-        for model in models:
-            for rp in return_periods:
+    fig, ax = plt.subplots(1, 1, figsize=dimensions)
+    fig.subplots_adjust(hspace=.3, wspace=.1)
+    fig.set_facecolor('gainsboro')
 
-                fig, ax = plt.subplots(1, 1, figsize=dimensions)
-                fig.subplots_adjust(hspace=.3, wspace=.1)
-                fig.set_facecolor('gainsboro')
+    minx, miny, maxx, maxy = outline.total_bounds
+    buffer = 2
+    ax.set_xlim(minx-(buffer-1), maxx+(buffer+1))
+    ax.set_ylim(miny-0.1, maxy+.1)
 
-                minx, miny, maxx, maxy = outline.total_bounds
-                buffer = 2
-                ax.set_xlim(minx-(buffer-1), maxx+(buffer+1))
-                ax.set_ylim(miny-0.1, maxy+.1)
+    fig.set_facecolor('gainsboro')
 
-                fig.set_facecolor('gainsboro')
+    folder = os.path.join(DATA_PROCESSED, iso3, 'hazards', 'cyclones')
+    filename = 'IBTrACS.since1980.list.v04r00.lines.shp'
+    path1 = os.path.join(folder, filename)
+    if os.path.exists(path1):
+        hazard = gpd.read_file(path1, crs='epsg:3857')
+        hazard = hazard.to_crs(4326)
+        hazard.plot(color='black', linewidth=3, alpha=1,
+            legend=True, edgecolor='black', ax=ax)
+        hazard_buffer = hazard.copy()
+        hazard_buffer['geometry'] = hazard_buffer['geometry'].buffer(.3)
+        hazard_buffer.plot(color='grey', linewidth=0, alpha=.5,
+            legend=True, edgecolor='black', ax=ax)
+    else:
+        return print("No historical cyclone tracks found")
+    
+    cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=z)
 
-                folder = os.path.join(DATA_PROCESSED, iso3, 'hazards', 'inunriver')
-                filename = 'inunriver_{}_{}_2080_{}.shp'.format(scenario, model, rp)
-                path1 = os.path.join(folder, filename)
+    if iso3 in ['ETH','DJI','SOM','SSD','MDG']:
+        filename = 'core_edges_existing.shp'
+        folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'country_data')
+        path_fiber = os.path.join(folder, filename)
+        fiber = gpd.read_file(path_fiber, crs='epsg:4326')
 
-                if os.path.exists(path1):
-                    hazard = gpd.read_file(path1, crs='epsg:3857')
-                    hazard = hazard.to_crs(4326)
-                    hazard.plot(color='black', linewidth=1.5, alpha=.5,
-                        legend=True, edgecolor='black', ax=ax)
-                    cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=z)
-                else:
-                    continue
+    if iso3 == 'KEN':
+        filename = 'From road to NOFBI.shp'
+        folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+        path_fiber = os.path.join(folder, filename)
+        fiber1 = gpd.read_file(path_fiber, crs='epsg:3857')
+        fiber1 = fiber1.to_crs(4326)
+        fiber1['status'] = 'Live'
+        fiber1 = fiber1[['geometry', 'status']]
+        filename = 'core_edges_existing.shp'
+        folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'afterfibre')
+        path_fiber = os.path.join(folder, filename)
+        fiber2 = gpd.read_file(path_fiber, crs='epsg:4326')
+        fiber2['status'] = 'Live'
+        fiber2 = fiber2[['geometry', 'status']]
+        fiber = fiber1.append(fiber2)
 
-                if iso3 in ['ETH','DJI','SOM','SSD','MDG']:
-                    filename = 'core_edges_existing.shp'
-                    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'country_data')
-                    path_fiber = os.path.join(folder, filename)
-                    fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-                    fiber.plot(color='orange', lw=1.5, ax=ax)
+    if len(fiber) > 0:
+        fiber.plot(color='orange', lw=1.5, ax=ax)
 
-                if iso3 == 'KEN':
-                    filename = 'From road to NOFBI.shp'
-                    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
-                    path_fiber = os.path.join(folder, filename)
-                    fiber1 = gpd.read_file(path_fiber, crs='epsg:3857')
-                    fiber1 = fiber1.to_crs(4326)
-                    fiber1['status'] = 'Planned Fiber'
-                    fiber1 = fiber1[['geometry', 'status']]
-                    fiber1.plot(color='yellow', legend=True, lw=1.5, ax=ax)
+    filename = '{}.csv'.format(iso3)
+    folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
+    path_sites = os.path.join(folder, filename)
+    sites = pd.read_csv(path_sites, encoding='latin-1')
 
-                    filename = 'core_edges_existing.shp'
-                    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'afterfibre')
-                    path_fiber = os.path.join(folder, filename)
-                    fiber2 = gpd.read_file(path_fiber, crs='epsg:4326')
-                    fiber2['status'] = 'Live Fiber'
-                    fiber2 = fiber2[['geometry', 'status']]
-                    fiber2.plot(color='orange', legend=True, lw=1.5, ax=ax)
-                  
-                filename = '{}.csv'.format(iso3)
-                folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
-                path_sites = os.path.join(folder, filename)
-                sites = pd.read_csv(path_sites, encoding='latin-1')
+    sites = gpd.GeoDataFrame(
+        sites,
+        geometry=gpd.points_from_xy(
+            sites.lon,
+            sites.lat
+        ), crs='epsg:4326'
+    )
 
-                sites = gpd.GeoDataFrame(
-                    sites,
-                    geometry=gpd.points_from_xy(
-                        sites.lon,
-                        sites.lat
-                    ), crs='epsg:4326'
-                )
+    sites = sites[['radio', 'geometry']]
+    gsm = sites.loc[sites['radio'] == 'GSM']
+    umts = sites.loc[sites['radio'] == 'UMTS']
+    lte = sites.loc[sites['radio'] == 'LTE']
+    nr = sites.loc[sites['radio'] == 'NR']
 
-                sites = sites[['radio', 'geometry']]
-                gsm = sites.loc[sites['radio'] == 'GSM']
-                umts = sites.loc[sites['radio'] == 'UMTS']
-                lte = sites.loc[sites['radio'] == 'LTE']
-                nr = sites.loc[sites['radio'] == 'NR']
+    gsm.plot(color='red', markersize=1, ax=ax, legend=True)
+    umts.plot(color='blue', markersize=1, ax=ax, legend=True)
+    lte.plot(color='yellow', markersize=1, ax=ax, legend=True)
+    if len(nr) > 0:
+        nr.plot(color='black', markersize=1, ax=ax, legend=True)
 
-                gsm.plot(color='red', markersize=1, ax=ax, legend=True)
-                umts.plot(color='blue', markersize=1, ax=ax, legend=True)
-                lte.plot(color='yellow', markersize=1, ax=ax, legend=True)
-                if len(nr) > 0:
-                    nr.plot(color='black', markersize=1, ax=ax, legend=True)
+    plt.legend(
+        ['Historical\nCyclone\nTracks','Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ],
+        loc='lower right',
+        title='Assets'
+    )
 
-                plt.legend(
-                    ['Planned Fiber', 'Live Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ],
-                    loc='lower right',
-                    title='Assets'
-                )
+    fig.tight_layout()
 
-                fig.tight_layout()
+    filename = 'cyclones.png'
+    folder_out = os.path.join(folder_vis)
+    if not os.path.exists(folder_out):
+        os.makedirs(folder_out)
+    path_out = os.path.join(folder_out, filename)
 
-                filename = 'inunriver_{}_{}_{}.png'.format(scenario, model, rp)
-                folder_out = os.path.join(folder_vis)
-                if not os.path.exists(folder_out):
-                    os.makedirs(folder_out)
-                path_out = os.path.join(folder_out, filename)
-
-                if iso3 in ['MDG']:
-                    main_title = 'Projected River Flooding: {},\n{}, {}, {}, 2080'.format(name, scenario, model, rp)
-                    plt.suptitle(main_title, fontsize=16, y=1.08, wrap=True)
-                    plt.savefig(path_out,
-                    pad_inches=0.4,
-                    bbox_inches='tight',
-                    dpi=600,
-                    )
-                    plt.close()
-                else:
-                    main_title = 'Projected River Flooding: {}, {}, {}, {}, 2080'.format(name, scenario, model, rp)
-                    plt.suptitle(main_title, fontsize=16, y=1.08, wrap=True)
-                    plt.savefig(path_out,
-                    pad_inches=0.4,
-                    bbox_inches='tight',
-                    dpi=600,
-                    )
-                    plt.close()
+    main_title = 'Historical Cyclone Tracks for {}'.format(name)
+    plt.suptitle(main_title, fontsize=16, y=1.08, wrap=True)
+    plt.savefig(path_out,
+    pad_inches=0.4,
+    bbox_inches='tight',
+    dpi=600,
+    )
+    plt.close()
 
     return
 
@@ -294,14 +283,14 @@ def plot_ken_extra_data(country, outline, dimensions,
     if country['iso3'] == 'DJI':
         z = 9
 
-    folder_vis = os.path.join(VIS, iso3, 'riverine')
+    folder_vis = os.path.join(VIS, iso3, 'cyclones')
     if not os.path.exists(folder_vis):
         os.makedirs(folder_vis)
 
     for scenario in scenarios:
         for model in models:
             for rp in return_periods:
-
+                print(scenario, model, rp)
                 fig, ax = plt.subplots(1, 1, figsize=dimensions)
                 fig.subplots_adjust(hspace=.3, wspace=.1)
                 fig.set_facecolor('gainsboro')
@@ -316,15 +305,12 @@ def plot_ken_extra_data(country, outline, dimensions,
                 folder = os.path.join(DATA_PROCESSED, iso3, 'hazards', 'inunriver')
                 filename = 'inunriver_{}_{}_2080_{}.shp'.format(scenario, model, rp)
                 path1 = os.path.join(folder, filename)
-                print(path1)
                 if os.path.exists(path1):
                     hazard = gpd.read_file(path1, crs='epsg:3857')
                     hazard = hazard.to_crs(4326)
                     hazard.plot(color='black', linewidth=1.5, alpha=.5,
                         legend=True, edgecolor='black', ax=ax)
                     cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=z)
-                else:
-                    continue
 
                 filename = 'kdeap_links.shp'
                 folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
@@ -381,26 +367,26 @@ def plot_ken_extra_data(country, outline, dimensions,
 
 if __name__ == '__main__':
 
-    scenarios = [
-        'rcp4p5',
-        'rcp8p5'
-    ]
+    # scenarios = [
+    #     'rcp4p5',
+    #     'rcp8p5'
+    # ]
 
-    models = [
-        '00000NorESM1-M',
-        '0000GFDL-ESM2M',
-        '0000HadGEM2-ES',
-        '00IPSL-CM5A-LR',
-        'MIROC-ESM-CHEM',
-    ]
+    # models = [
+    #     # '00000NorESM1-M',
+    #     # '0000GFDL-ESM2M',
+    #     # '0000HadGEM2-ES',
+    #     '00IPSL-CM5A-LR',
+    #     # 'MIROC-ESM-CHEM',
+    # ]
 
-    return_periods = [
-        'rp01000',
-        'rp00500',
-        'rp00100',
-        'rp00050',
-        'rp00025'
-    ]
+    # return_periods = [
+    #     'rp01000',
+    #     # 'rp00500',
+    #     # 'rp00100',
+    #     # 'rp00050',
+    #     'rp00025'
+    # ]
 
     filename = 'countries.csv'
     path = os.path.join(BASE_PATH, 'raw', filename)
@@ -409,11 +395,11 @@ if __name__ == '__main__':
     for idx, country in countries.iterrows():
 
         if not country['iso3'] in [
-            'KEN', 
+            # 'KEN', 
             # 'ETH', 
             # 'DJI', 
             # 'SOM', 
-            # 'SSD', 
+            'SSD', 
             # 'MDG' 
             ]:
             continue
@@ -436,7 +422,7 @@ if __name__ == '__main__':
         path = os.path.join(DATA_PROCESSED, iso3, filename)
         outline = gpd.read_file(path, crs='epsg:4326')
 
-        plot_inunriver(country, outline, dimensions, scenarios, models, return_periods)
+        plot_cyclone(country, outline, dimensions)
 
         # if iso3 == 'KEN':
         #     plot_ken_extra_data(country, outline, dimensions, scenarios, models, return_periods)

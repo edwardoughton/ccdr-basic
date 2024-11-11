@@ -136,20 +136,52 @@ def convert(kmz_path, output_shp_path):
     output_shp_path (str): Path where the output .shp file should be saved.
 
     """
+    if not "HoA Map 8.1" in kmz_path:
+        return
+
     # Extract KML from KMZ
     kml_path = extract_kml_from_kmz(kmz_path)
     
     # Convert KML to GeoDataFrame
     gdf = kml_to_gdf(kml_path)
+    gdf.insert(0, 'geo_id', range(0, len(gdf)))
+    
+    data = gdf.to_dict('records')
 
-    if "HoA Map 8.1" in kmz_path:
-        gdf.insert(0, 'geo_id', range(0, len(gdf)))
-        planned = [77,78,133,134,135,136,137,138,139,140,141,142,143,144,145,
-                146,147,148,149,150,151,152,153,154,155,156,157]
-        gdf['live'] = np.where(gdf['geo_id'].isin(planned),'planned','live')
+    #define route ID status
+    exclude = [142, 151]
+    planned = [133,134,135,136,137,138,139,140,141,142,143,144,145,
+            146,147,148,149,150,151,152,153,154,155]
+    inactive = [156,157]
+    needs_upgrading = [0,1,2,3,4,5,6]
+
+    output = []
+
+    for item in data:
+
+        if item['geo_id'] in exclude:
+            continue
+        status = 'Live'
+        if item['geo_id'] in planned:
+            status = 'Planned'
+        if item['geo_id'] in inactive:
+            status = 'Inactive'
+        if item['geo_id'] in needs_upgrading:
+            status = 'Needs Upgrading'
+
+        output.append({
+            'geometry': item['geometry'],
+            'properties': {
+                'geo_id': item['geo_id'],
+                'name': item['name'],
+                'status': status,
+            }
+        })
+
+    output = gpd.GeoDataFrame.from_features(output)
 
     # Save the GeoDataFrame as a shapefile
-    gdf.to_file(output_shp_path)
+    output.to_file(output_shp_path)
     print(f"Shapefile saved at {output_shp_path}")
 
     return
@@ -166,8 +198,9 @@ def process_fiber(iso3):
         if not country['iso3'] == iso3:
             continue
 
-        if country['iso3'] in ['BWA', 'COD', 'KEN', 'ETH', 'DJI','SOM', 'SSD', 'MDG']:
-            process_afterdark_data(country)
+        if country['iso3'] in ['BWA', 'COD', 'KEN', 'MDG'#'ETH', 'DJI','SOM', 'SSD', 
+                               ]:
+            process_afterfibre_data(country)
 
         if country['iso3'] in ['AZE']:
             process_itu_data(country)
@@ -178,13 +211,13 @@ def process_fiber(iso3):
         if country['iso3'] in ['MDG']:
             preprocess_madagascar_data()
 
-        if country['iso3'] in ['KEN', 'ETH', 'DJI','SOM', 'SSD']:
+        if country['iso3'] in ['ETH', 'DJI','SOM', 'SSD']:
             preprocess_hoa_data(country['iso3'])
 
     return
 
 
-def process_afterdark_data(country):
+def process_afterfibre_data(country):
     """
     Load and process existing fiber data.
 
@@ -194,7 +227,7 @@ def process_afterdark_data(country):
     if iso2 == 'ss':
         iso2 = 'sd'
 
-    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'afterdark')
+    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'afterfibre')
     if not os.path.exists(folder):
         os.makedirs(folder)
     filename = 'core_edges_existing.shp'
@@ -208,8 +241,9 @@ def process_afterdark_data(country):
     shapes = fiona.open(path)
 
     data = []
+    idx2 = 0
 
-    for item in shapes:
+    for idx, item in enumerate(shapes):
         if item['properties']['iso2'] == iso2:
             if item['geometry']['type'] == 'LineString':
                 # if int(item['properties']['live']) == 1:
@@ -220,6 +254,8 @@ def process_afterdark_data(country):
                         'coordinates': item['geometry']['coordinates'],
                     },
                     'properties': {
+                        'idx': idx,
+                        'idx2': idx2,
                         'operators': item['properties']['operator'],
                         'live': item['properties']['live'],
                         # 'source': 'existing'
@@ -228,11 +264,13 @@ def process_afterdark_data(country):
 
             if item['geometry']['type'] == 'MultiLineString':
                 # if int(item['properties']['live']) == 1:
-                for line in list(MultiLineString(item['geometry']['coordinates']).geoms):
+                for idx2, line in enumerate(list(MultiLineString(item['geometry']['coordinates']).geoms)):
                     data.append({
                         'type': 'Feature',
                         'geometry': mapping(line),
                         'properties': {
+                            'idx': idx,
+                            'idx2': idx2,
                             'operators': item['properties']['operator'],
                             'live': item['properties']['live'],
                             # 'source': 'existing'
@@ -318,18 +356,48 @@ def preprocess_madagascar_data():
     - "Madagascar operational fiber routes.shp"
 
     """
+    output = []
+
     filename = "Madagascar operational fiber routes.shp"
     folder = os.path.join(DATA_RAW,'Madagascar', 'Madagascar Fiber')
     path_in = os.path.join(folder, filename)
     data = gpd.read_file(path_in)
-    data['live'] = 'live'
+    data['status'] = 'Live'
+    data = data.to_dict('records')
+    for item in data:
+        output.append({
+            'geometry': item['geometry'],
+            'properties': {
+                'country': 'Madagascar',
+                'status': 'Live',
+            }
+        })
+
+    filename = 'core_edges_existing.shp'
+    folder = os.path.join(DATA_PROCESSED, 'MDG', 'network_existing', 'afterfibre')
+    path_in = os.path.join(folder, filename)
+    data_afterfibre = gpd.read_file(path_in)
+    data_afterfibre = data_afterfibre.to_dict('records')
+
+    for item in data_afterfibre:
+        if item['idx'] == 98:
+            if item['idx2'] in [0,1]:
+                output.append({
+                    'geometry': item['geometry'],
+                    'properties': {
+                        'country': 'Madagascar',
+                        'status': 'Live',
+                    }
+                })
+
+    output = gpd.GeoDataFrame.from_features(output, crs='epsg:4326')
 
     filename = 'core_edges_existing.shp'
     folder = os.path.join(DATA_PROCESSED, 'MDG', 'network_existing', 'country_data')
     if not os.path.exists(folder):
         os.makedirs(folder)
     path_out = os.path.join(folder, filename)
-    data.to_file(path_out)
+    output.to_file(path_out)
 
     return
 
@@ -360,12 +428,15 @@ def preprocess_hoa_data(iso3):
                 continue
             if not item['geometry'].geom_type  == 'LineString':
                 continue
+            if iso3 == 'ETH':
+                if item['status'] == 'planned':
+                    continue
 
             shapes.append({
                 'geometry': item['geometry'],
                 'properties': {
                     'name': item['name'],
-                    'live': item['live']
+                    'status': item['status']
                 }
             })
 
@@ -400,8 +471,9 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
 
-        if country['iso3'] in [#'KEN', 'ETH', 'DJI','SOM', 
-                               #'SSD', 
+        if country['iso3'] in ['KEN', 
+                               'ETH', 'DJI','SOM', 
+                               'SSD', 
                                'MDG'
                                ]:
             process_fiber(country['iso3'])

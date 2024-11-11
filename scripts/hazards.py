@@ -580,26 +580,26 @@ if __name__ == '__main__':
     ]
 
     models = [
-        '00000NorESM1-M',
-        '0000GFDL-ESM2M',
-        '0000HadGEM2-ES',
+        # '00000NorESM1-M',
+        # '0000GFDL-ESM2M',
+        # '0000HadGEM2-ES',
         '00IPSL-CM5A-LR',
-        'MIROC-ESM-CHEM',
+        # 'MIROC-ESM-CHEM',
     ]
 
     return_periods_coastal = [
         'rp1000',
-        'rp0500',
-        'rp0100',
-        'rp0050',
+        # 'rp0500',
+        # 'rp0100',
+        # 'rp0050',
         'rp0025'
     ]
 
     return_periods_riverine = [
         'rp01000',
-        'rp00500',
-        'rp00100',
-        'rp00050',
+        # 'rp00500',
+        # 'rp00100',
+        # 'rp00050',
         'rp00025'
     ]
 
@@ -608,9 +608,9 @@ if __name__ == '__main__':
     for idx, country in countries.iterrows():
 
         if not country['iso3'] in [
-            # 'COD', 'KEN', 
+            'KEN', 
             'ETH', 
-            # 'DJI','SOM', 'SSD', 'MDG'
+            'DJI','SOM', 'SSD', 'MDG'
             ]:
             continue
 
@@ -626,17 +626,17 @@ if __name__ == '__main__':
         # print('extracting coastal')
         # extract_inuncoast(country, scenarios, return_periods_coastal)
 
-        # print('processing cyclones')
-        # process_cyclones(country) #cyclones
+        print('processing cyclones')
+        process_cyclones(country) #cyclones
 
         # print('processing droughts')
         # process_droughts(country) #drought flooding
 
-        print('processing landslides')
-        process_landslides(country) #landslides
+        # print('processing landslides')
+        # process_landslides(country) #landslides
 
-        print('extracting landslides')
-        extract_landslides(country)
+        # print('extracting landslides')
+        # extract_landslides(country)
 
         # print('processing rivers')
         # process_inunriver(country, scenarios, models, return_periods_riverine) #river flooding

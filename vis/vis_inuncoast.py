@@ -1,5 +1,5 @@
 """
-Visualize riverine hazard.
+Visualize coastal hazard.
 
 Written by Ed Oughton.
 
@@ -150,15 +150,16 @@ def extract_inunriver(country, scenarios, models, return_periods):
     return
 
 
-def plot_inunriver(country, outline, dimensions,
-    scenarios, models, return_periods):
+def plot_inuncoast(country, outline, dimensions,
+    scenarios, return_periods):
     """
-    Plot river uncovered population by region.
+    Plot coastal uncovered population by region.
 
     """
-    sources = ['afterdark','country_data']
+    sources = ['country_data'] #'afterfibre',
     
     for source in sources:
+
         iso3 = country['iso3']
         name = country['country']
 
@@ -166,99 +167,121 @@ def plot_inunriver(country, outline, dimensions,
         if country['iso3'] == 'DJI':
             z = 9
 
-        folder_vis = os.path.join(VIS, iso3, 'riverine')
-        if not os.path.exists(folder_vis):
-            os.makedirs(folder_vis)
-
         for scenario in scenarios:
-            for model in models:
-                for rp in return_periods:
+            for rp in return_periods:
 
-                    fig, ax = plt.subplots(1, 1, figsize=dimensions)
-                    fig.subplots_adjust(hspace=.3, wspace=.1)
-                    fig.set_facecolor('gainsboro')
+                fig, ax = plt.subplots(1, 1, figsize=dimensions)
+                fig.subplots_adjust(hspace=.3, wspace=.1)
+                fig.set_facecolor('gainsboro')
 
-                    minx, miny, maxx, maxy = outline.total_bounds
-                    buffer = 2
-                    ax.set_xlim(minx-(buffer-1), maxx+(buffer+1))
-                    ax.set_ylim(miny-0.1, maxy+.1)
+                minx, miny, maxx, maxy = outline.total_bounds
+                buffer = 2
+                ax.set_xlim(minx-(buffer-1), maxx+(buffer+1))
+                ax.set_ylim(miny-0.1, maxy+.1)
 
-                    fig.set_facecolor('gainsboro')
+                fig.set_facecolor('gainsboro')
 
-                    folder = os.path.join(DATA_PROCESSED, iso3, 'hazards', 'inunriver')
-                    filename = 'inunriver_{}_{}_2080_{}.shp'.format(scenario, model, rp)
-                    path1 = os.path.join(folder, filename)
-                    if os.path.exists(path1):
-                        hazard = gpd.read_file(path1, crs='epsg:3857')
-                        hazard = hazard.to_crs(4326)
-                        hazard.plot(color='black', linewidth=1.5, alpha=.5,
-                            legend=True, edgecolor='black', ax=ax)
-                        cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=z)
+                folder = os.path.join(DATA_PROCESSED, iso3, 'hazards', 'inuncoast')
+                filename = 'inuncoast_{}_wtsub_2080_{}_0.shp'.format(scenario, rp)
+                path1 = os.path.join(folder, filename)
+
+                if os.path.exists(path1):
+                    hazard = gpd.read_file(path1, crs='epsg:3857')
+                    hazard = hazard.to_crs(4326)
+                    hazard.plot(color='black', linewidth=1.5, alpha=.5,
+                        legend=True, edgecolor='black', ax=ax)
+                    cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=z)
+
+                else:
+                    return print('No coastal hazard layers found')
+
+                if iso3 in ['ETH','DJI','SOM','SSD','MDG']:
+                    filename = 'core_edges_existing.shp'
+                    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'country_data')
+                    path_fiber = os.path.join(folder, filename)
+                    fiber = gpd.read_file(path_fiber, crs='epsg:4326')
+                    fiber.plot(color='orange', lw=1.5, ax=ax)
+
+                if iso3 == 'KEN':
+                    filename = 'From road to NOFBI.shp'
+                    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+                    path_fiber = os.path.join(folder, filename)
+                    fiber1 = gpd.read_file(path_fiber, crs='epsg:3857')
+                    fiber1 = fiber1.to_crs(4326)
+                    fiber1['status'] = 'Planned Fiber'
+                    fiber1 = fiber1[['geometry', 'status']]
+                    fiber1.plot(color='yellow', legend=True, lw=1.5, ax=ax)
 
                     filename = 'core_edges_existing.shp'
-                    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', source)
+                    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'afterfibre')
                     path_fiber = os.path.join(folder, filename)
-                    if os.path.exists(path_fiber):
-                        fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-                        fiber.plot(color='orange', lw=1.5, ax=ax)
+                    fiber2 = gpd.read_file(path_fiber, crs='epsg:4326')
+                    fiber2['status'] = 'Live Fiber'
+                    fiber2 = fiber2[['geometry', 'status']]
+                    fiber2.plot(color='orange', legend=True, lw=1.5, ax=ax)
 
-                    filename = '{}.csv'.format(iso3)
-                    folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
-                    path_sites = os.path.join(folder, filename)
-                    sites = pd.read_csv(path_sites, encoding='latin-1')
+                filename = '{}.csv'.format(iso3)
+                folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
+                path_sites = os.path.join(folder, filename)
+                sites = pd.read_csv(path_sites, encoding='latin-1')
 
-                    sites = gpd.GeoDataFrame(
-                        sites,
-                        geometry=gpd.points_from_xy(
-                            sites.lon,
-                            sites.lat
-                        ), crs='epsg:4326'
+                sites = gpd.GeoDataFrame(
+                    sites,
+                    geometry=gpd.points_from_xy(
+                        sites.lon,
+                        sites.lat
+                    ), crs='epsg:4326'
+                )
+
+                sites = sites[['radio', 'geometry']]
+                gsm = sites.loc[sites['radio'] == 'GSM']
+                umts = sites.loc[sites['radio'] == 'UMTS']
+                lte = sites.loc[sites['radio'] == 'LTE']
+                nr = sites.loc[sites['radio'] == 'NR']
+
+                gsm.plot(color='red', markersize=1, ax=ax, legend=True)
+                umts.plot(color='blue', markersize=1, ax=ax, legend=True)
+                lte.plot(color='yellow', markersize=1, ax=ax, legend=True)
+                if len(nr) > 0:
+                    nr.plot(color='black', markersize=1, ax=ax, legend=True)
+
+                plt.legend(
+                    ['Planned Fiber', 'Live Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ],
+                    loc='lower right',
+                    title='Assets'
+                )
+
+                fig.tight_layout()
+
+
+                folder_vis = os.path.join(VIS, iso3, 'coastal')
+                if not os.path.exists(folder_vis):
+                    os.makedirs(folder_vis)
+                    
+                filename = 'inuncoast_{}_{}.png'.format(scenario, rp)
+                folder_out = os.path.join(folder_vis)
+                if not os.path.exists(folder_out):
+                    os.makedirs(folder_out)
+                path_out = os.path.join(folder_out, filename)
+
+                if iso3 in ['MDG']:
+                    main_title = 'Projected Coastal Flooding: {},\n{}, {}, 2080'.format(name, scenario, rp)
+                    plt.suptitle(main_title, fontsize=16, y=1.08, wrap=True)
+                    plt.savefig(path_out,
+                    pad_inches=0.4,
+                    bbox_inches='tight',
+                    dpi=600,
                     )
-
-                    sites = sites[['radio', 'geometry']]
-                    gsm = sites.loc[sites['radio'] == 'GSM']
-                    umts = sites.loc[sites['radio'] == 'UMTS']
-                    lte = sites.loc[sites['radio'] == 'LTE']
-                    nr = sites.loc[sites['radio'] == 'NR']
-
-                    gsm.plot(color='red', markersize=1, ax=ax, legend=True)
-                    umts.plot(color='blue', markersize=1, ax=ax, legend=True)
-                    lte.plot(color='yellow', markersize=1, ax=ax, legend=True)
-                    if len(nr) > 0:
-                        nr.plot(color='black', markersize=1, ax=ax, legend=True)
-
-                    plt.legend(
-                        ['Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ],
-                        loc='lower right',
-                        title='Assets'
+                    plt.close()
+                else:
+                    main_title = 'Projected Coastal Flooding: {}, {}, {}, 2080'.format(name, scenario, rp)
+                    plt.suptitle(main_title, fontsize=16, y=1.08, wrap=True)
+                    plt.savefig(path_out,
+                    pad_inches=0.4,
+                    bbox_inches='tight',
+                    dpi=600,
                     )
-
-                    fig.tight_layout()
-
-                    filename = 'inunriver_{}_{}_{}_{}.png'.format(scenario, model, rp, source)
-                    folder_out = os.path.join(folder_vis, source)
-                    if not os.path.exists(folder_out):
-                        os.makedirs(folder_out)
-                    path_out = os.path.join(folder_out, filename)
-
-                    if iso3 in ['MDG']:
-                        main_title = 'Projected River Flooding: {},\n{}, {}, {}, 2080'.format(name, scenario, model, rp)
-                        plt.suptitle(main_title, fontsize=16, y=1.08, wrap=True)
-                        plt.savefig(path_out,
-                        pad_inches=0.4,
-                        bbox_inches='tight',
-                        dpi=600,
-                        )
-                        plt.close()
-                    else:
-                        main_title = 'Projected River Flooding: {}, {}, {}, {}, 2080'.format(name, scenario, model, rp)
-                        plt.suptitle(main_title, fontsize=16, y=1.08, wrap=True)
-                        plt.savefig(path_out,
-                        pad_inches=0.4,
-                        bbox_inches='tight',
-                        dpi=600,
-                        )
-                        plt.close()
+                    plt.close()
 
     return
 
@@ -365,20 +388,20 @@ if __name__ == '__main__':
         'rcp8p5'
     ]
 
-    models = [
-        '00000NorESM1-M',
-        '0000GFDL-ESM2M',
-        '0000HadGEM2-ES',
-        '00IPSL-CM5A-LR',
-        'MIROC-ESM-CHEM',
-    ]
+    # models = [
+    #     # '00000NorESM1-M',
+    #     # '0000GFDL-ESM2M',
+    #     # '0000HadGEM2-ES',
+    #     '00IPSL-CM5A-LR',
+    #     # 'MIROC-ESM-CHEM',
+    # ]
 
     return_periods = [
-        'rp01000',
-        'rp00500',
-        'rp00100',
-        'rp00050',
-        'rp00025'
+        'rp1000',
+        # 'rp0500',
+        # 'rp0100',
+        # 'rp0050',
+        'rp0025'
     ]
 
     filename = 'countries.csv'
@@ -389,11 +412,11 @@ if __name__ == '__main__':
 
         if not country['iso3'] in [
             'KEN', 
-            'ETH', 
-            'DJI', 
-            'SOM', 
-            'SSD', 
-            'MDG' 
+            # 'ETH', 
+            # 'DJI', 
+            # 'SOM', 
+            # 'SSD', 
+            # 'MDG' 
             ]:
             continue
 
@@ -415,7 +438,7 @@ if __name__ == '__main__':
         path = os.path.join(DATA_PROCESSED, iso3, filename)
         outline = gpd.read_file(path, crs='epsg:4326')
 
-        plot_inunriver(country, outline, dimensions, scenarios, models, return_periods)
+        plot_inuncoast(country, outline, dimensions, scenarios, return_periods)
 
         # if iso3 == 'KEN':
         #     plot_ken_extra_data(country, outline, dimensions, scenarios, models, return_periods)
