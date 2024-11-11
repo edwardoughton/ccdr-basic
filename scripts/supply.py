@@ -61,34 +61,31 @@ def plot_fiber(country, outline):
     path_fiber = os.path.join(folder, filename)
     if os.path.exists(path_fiber):
         fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-        if iso3 in ['BWA','ETH','DJI','SOM','SSD','MDG']:
-            planned = fiber[fiber['live'] == 'planned']
-            planned.plot(color='yellow', legend=True, lw=1.5, ax=ax) 
-            live = fiber[fiber['live'] == 'live']
-            live.plot(color='orange', legend=True, lw=1.5, ax=ax) 
-        # if iso3 == 'COD':
-        #     planned = fiber[fiber['live'] == 0]
-        #     planned.plot(color='yellow', legend=True, lw=1.5, ax=ax) 
-        #     live = fiber[fiber['live'] == 1]
-        #     live.plot(color='orange', legend=True, lw=1.5, ax=ax) 
+        if iso3 in ['ETH','DJI','SOM','SSD','MDG']:
+            live = fiber[fiber['status'].isin(['Live','Needs Upgrading'])]
+            if len(live) > 0:
+                live.plot(color='orange', legend=True, lw=1.5, ax=ax)
+            planned = fiber[fiber['status'].isin(['Planned','Inactive'])]
+            if len(planned) > 0:
+                planned.plot(color='yellow', legend=True, lw=1.5, ax=ax)
+
         if iso3 == 'KEN':
             filename = 'From road to NOFBI.shp'
             folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
             path_fiber = os.path.join(folder, filename)
-            fiber = gpd.read_file(path_fiber, crs='epsg:3857')
-            fiber = fiber.to_crs(4326)
-            fiber['live'] = 0
-            fiber = fiber[['geometry', 'live']]
-            planned = fiber[fiber['live'] == 0]
-            planned.plot(color='yellow', legend=True, lw=1.5, ax=ax)
+            fiber1 = gpd.read_file(path_fiber, crs='epsg:3857')
+            fiber1 = fiber1.to_crs(4326)
+            fiber1['status'] = 'Planned'
+            fiber1 = fiber1[['geometry', 'status']]
+            fiber1.plot(color='yellow', legend=True, lw=1.5, ax=ax)
+
             filename = 'core_edges_existing.shp'
-            folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+            folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'afterfibre')
             path_fiber = os.path.join(folder, filename)
-            fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-            fiber['live'] = 1
-            fiber = fiber[['geometry', 'live']]
-            live = fiber[fiber['live'] == 1]
-            live.plot(color='orange', legend=True, lw=1.5, ax=ax)
+            fiber2 = gpd.read_file(path_fiber, crs='epsg:4326')
+            fiber2['status'] = 'Live'
+            fiber2 = fiber2[['geometry', 'status']]
+            fiber2.plot(color='orange', legend=True, lw=1.5, ax=ax)
 
     outline.plot(linewidth=1, alpha=1, facecolor="none", 
         legend=True, edgecolor='black', ax=ax)
@@ -99,7 +96,7 @@ def plot_fiber(country, outline):
     cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=zoom_level)
 
     plt.legend(
-        ['Planned', 'Live'], 
+        ['Live Fiber', 'Planned Fiber'], 
         loc='lower right',
         title='Assets'
     )
@@ -207,11 +204,11 @@ if __name__ == '__main__':
 
         if not country['iso3'] in [
             'KEN', 
-            'ETH', 
-            'DJI',
-            'SOM', 
-            'SSD', 
-            'MDG'
+            # 'ETH', 
+            # 'DJI',
+            # 'SOM', 
+            # 'SSD', 
+            # 'MDG'
             ]:
             continue
 
@@ -234,8 +231,8 @@ if __name__ == '__main__':
         print('Plotting plot_fiber')
         plot_fiber(country, outline)
 
-        print('Plotting plot_cells')
-        plot_cells(country, outline)
+        # print('Plotting plot_cells')
+        # plot_cells(country, outline)
 
 
 

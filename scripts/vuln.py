@@ -52,10 +52,27 @@ def intersect_hazard_fiber(country, hazard_type):
 
         print("Working on {}, {}".format(hazard_filename, hazard_type))
 
-        filename = 'core_edges_existing.shp'
-        folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'country_data')
-        path_fiber = os.path.join(folder, filename)
-        fiber = gpd.read_file(path_fiber, crs='epsg:4326')
+        if iso3 in ['DJI', 'ETH', 'MDG', 'SOM', 'SSD']:
+            filename = 'core_edges_existing.shp'
+            folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'country_data')
+            path_fiber = os.path.join(folder, filename)
+            fiber = gpd.read_file(path_fiber, crs='epsg:4326')
+        if iso3 in ['KEN']:
+            filename = 'From road to NOFBI.shp'
+            folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+            path_fiber = os.path.join(folder, filename)
+            fiber1 = gpd.read_file(path_fiber, crs='epsg:3857')
+            fiber1 = fiber1.to_crs(4326)
+            fiber1['status'] = 'Live'
+            fiber1 = fiber1[['geometry', 'status']]
+            filename = 'core_edges_existing.shp'
+            folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'afterfibre')
+            path_fiber = os.path.join(folder, filename)
+            fiber2 = gpd.read_file(path_fiber, crs='epsg:4326')
+            fiber2['status'] = 'Live'
+            fiber2 = fiber2[['geometry', 'status']]
+            fiber = fiber1.append(fiber2)
+        
         fiber_length = fiber.to_crs(3857)
         fiber_length['length_m'] = fiber_length['geometry'].length
 
@@ -719,8 +736,8 @@ if __name__ == '__main__':
 
     hazard_types = [
         'inunriver',
-        'inuncoast',
-        'landslide'
+        # 'inuncoast',
+        # 'landslide'
     ]
 
     asset_types = [

@@ -68,13 +68,31 @@ def plot_landslide(country, outline, dimensions):
             legend=True, edgecolor='black', ax=ax)
         cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=7)
 
-    filename = 'core_edges_existing.shp'
-    folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing','country_data')
-    path_fiber = os.path.join(folder, filename)
-    if os.path.exists(path_fiber):
+    if iso3 in ['ETH','DJI','SOM','SSD','MDG']:
+        filename = 'core_edges_existing.shp'
+        folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'country_data')
+        path_fiber = os.path.join(folder, filename)
         fiber = gpd.read_file(path_fiber, crs='epsg:4326')
         fiber.plot(color='orange', lw=1.5, ax=ax)
 
+    if iso3 == 'KEN':
+        filename = 'From road to NOFBI.shp'
+        folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+        path_fiber = os.path.join(folder, filename)
+        fiber1 = gpd.read_file(path_fiber, crs='epsg:3857')
+        fiber1 = fiber1.to_crs(4326)
+        fiber1['status'] = 'Planned Fiber'
+        fiber1 = fiber1[['geometry', 'status']]
+        fiber1.plot(color='yellow', legend=True, lw=1.5, ax=ax)
+
+        filename = 'core_edges_existing.shp'
+        folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'afterfibre')
+        path_fiber = os.path.join(folder, filename)
+        fiber2 = gpd.read_file(path_fiber, crs='epsg:4326')
+        fiber2['status'] = 'Live Fiber'
+        fiber2 = fiber2[['geometry', 'status']]
+        fiber2.plot(color='orange', legend=True, lw=1.5, ax=ax)
+       
     filename = '{}.csv'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
     path_sites = os.path.join(folder, filename)
@@ -101,7 +119,7 @@ def plot_landslide(country, outline, dimensions):
         nr.plot(color='black', markersize=3, ax=ax, legend=True)
 
     plt.legend(
-        ['Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ],
+        ['Planned Fiber', 'Live Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ],
         loc='lower right',
         title='Assets'
     )
@@ -161,31 +179,46 @@ def plot_landslide_fiber(country, outline, dimensions):
                 legend=True, edgecolor='black', ax=ax)
             cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=7)
 
-        filename = 'core_edges_existing.shp'
-        folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', source)
-        path_fiber = os.path.join(folder, filename)
-        if os.path.exists(path_fiber):
+        if iso3 in ['ETH','DJI','SOM','SSD','MDG']:
+            filename = 'core_edges_existing.shp'
+            folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'country_data')
+            path_fiber = os.path.join(folder, filename)
             fiber = gpd.read_file(path_fiber, crs='epsg:4326')
-            planned = fiber[fiber['live'] == 'planned']
-            if len(planned) > 0:            
-                planned.plot(color='yellow', legend=True, lw=1.5, ax=ax) 
-            live = fiber[fiber['live'] == 'live']
-            live.plot(color='orange', legend=True, lw=1.5, ax=ax) 
-        else:
-            print('path did not exist: {}'.format(path_fiber))
-        
-        if len(planned) > 0: 
-            legend = ['Planned', 'Live']
-        else:
-            legend = ['Live']
+            fiber.plot(color='orange', lw=1.5, ax=ax)
+
+        if iso3 == 'KEN':
+            filename = 'From road to NOFBI.shp'
+            folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing')
+            path_fiber = os.path.join(folder, filename)
+            fiber1 = gpd.read_file(path_fiber, crs='epsg:3857')
+            fiber1 = fiber1.to_crs(4326)
+            fiber1['status'] = 'Planned'
+            fiber1 = fiber1[['geometry', 'status']]
+            fiber1.plot(color='yellow', legend=True, lw=1.5, ax=ax)
+
+            filename = 'core_edges_existing.shp'
+            folder = os.path.join(DATA_PROCESSED, iso3, 'network_existing', 'afterfibre')
+            path_fiber = os.path.join(folder, filename)
+            fiber2 = gpd.read_file(path_fiber, crs='epsg:4326')
+            fiber2['status'] = 'Live'
+            fiber2 = fiber2[['geometry', 'status']]
+            fiber2.plot(color='orange', legend=True, lw=1.5, ax=ax)
+               
+        legend = ['Live']
         plt.legend(legend, loc='lower right', title='Assets')
 
+        if iso3 == 'KEN':
+            plt.legend(
+                ['Planned', 'Live'], 
+                loc='lower right',
+                title='Assets'
+            )
         fig.tight_layout()
 
         main_title = 'Landslide Risk Exposure for Medium and High Risk Areas'
         plt.suptitle(main_title, fontsize=20, y=1.03, wrap=True)
 
-        filename = 'landslide_fiber_{}.png'.format(source)
+        filename = 'landslide_fiber.png'
         path_out = os.path.join(folder_vis, filename)
 
         plt.savefig(path_out,
