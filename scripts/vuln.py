@@ -735,25 +735,25 @@ if __name__ == '__main__':
     countries = pd.read_csv(path, encoding='latin-1')
 
     hazard_types = [
-        'inunriver',
-        # 'inuncoast',
+        # 'inunriver',
+        'inuncoast',
         # 'landslide'
     ]
 
     asset_types = [
-        # 'fiber',
+        'fiber',
         'cells'
     ]
 
     for idx, country in countries.iterrows():
 
         if not country['iso3'] in [
-            # 'KEN', 
-            # 'ETH', 
+            'KEN', 
+            'ETH', 
             'DJI',
-            # 'SOM', 
-            # 'SSD', 
-            # 'MDG'
+            'SOM', 
+            'SSD', 
+            'MDG'
             ]:
             continue
 

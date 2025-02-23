@@ -302,7 +302,7 @@ def extract_landslides(country):
 
         for vec in rasterio.features.shapes(array):
 
-            if not vec[1] == 255 and vec[1] >= 3: 
+            if not vec[1] == 255:# and vec[1] >= 3: 
 
                 coordinates = [i for i in vec[0]['coordinates'][0]]
 
@@ -626,17 +626,17 @@ if __name__ == '__main__':
         # print('extracting coastal')
         # extract_inuncoast(country, scenarios, return_periods_coastal)
 
-        print('processing cyclones')
-        process_cyclones(country) #cyclones
+        # print('processing cyclones')
+        # process_cyclones(country) #cyclones
 
         # print('processing droughts')
         # process_droughts(country) #drought flooding
 
-        # print('processing landslides')
-        # process_landslides(country) #landslides
+        print('processing landslides')
+        process_landslides(country) #landslides
 
-        # print('extracting landslides')
-        # extract_landslides(country)
+        print('extracting landslides')
+        extract_landslides(country)
 
         # print('processing rivers')
         # process_inunriver(country, scenarios, models, return_periods_riverine) #river flooding
