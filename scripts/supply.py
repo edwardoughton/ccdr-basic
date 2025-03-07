@@ -87,9 +87,19 @@ def plot_fiber(country, outline):
             fiber2 = fiber2[['geometry', 'status']]
             fiber2.plot(color='orange', legend=True, lw=1.5, ax=ax)
 
-    outline.plot(linewidth=1, alpha=1, facecolor="none", 
-        legend=True, edgecolor='black', ax=ax)
+    outline.plot(linewidth=.5, alpha=1, facecolor="none", 
+        legend=True, edgecolor='grey', ax=ax)
     
+    if iso3 in ['ETH', 'KEN','SSD']:
+        ilemi_path = os.path.join(BASE_PATH, 'raw', 'ILEMI_TRIANGLE.shp')
+        ilemi_triangle = gpd.read_file(ilemi_path, crs='epsg:4326')
+        ilemi_triangle.plot(ax=ax, edgecolor='grey', linestyle='dashed', linewidth=2, facecolor='none')
+
+    if iso3 in ['SOM']:
+        somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+        somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+        somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+
     zoom_level = 7
     if iso3 == 'DJI':
         zoom_level = 9
@@ -139,13 +149,18 @@ def plot_cells(country, outline):
     ax.set_xlim(minx-(buffer-1), maxx+(buffer+1))
     ax.set_ylim(miny-0.1, maxy+.1)
 
-    outline.plot(linewidth=1, alpha=1, facecolor="none", 
-        legend=True, edgecolor='black', ax=ax)
+    outline.plot(linewidth=.5, alpha=1, facecolor="none", 
+        legend=True, edgecolor='grey', ax=ax)
     
     zoom_level = 7
     if iso3 == 'DJI':
         zoom_level = 9
     cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=zoom_level)
+
+    if iso3 in ['SOM']:
+        somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+        somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+        somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
 
     filename = '{}.csv'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
@@ -171,6 +186,11 @@ def plot_cells(country, outline):
     lte.plot(color='yellow', markersize=3, ax=ax, legend=True)
     if len(nr) > 0:
         nr.plot(color='black', markersize=3, ax=ax, legend=True)
+
+    if iso3 in ['ETH', 'KEN','SSD']:
+        ilemi_path = os.path.join(BASE_PATH, 'raw', 'ILEMI_TRIANGLE.shp')
+        ilemi_triangle = gpd.read_file(ilemi_path, crs='epsg:4326')
+        ilemi_triangle.plot(ax=ax, edgecolor='grey', linestyle='dashed', linewidth=2, facecolor='none')
 
     plt.legend(
         ['2G GSM', '3G UMTS', '4G LTE', '5G NR'], 
@@ -203,10 +223,10 @@ if __name__ == '__main__':
     for idx, country in countries.iterrows(): #, total=countries.shape[0]):
 
         if not country['iso3'] in [
-            'KEN', 
+            # 'KEN', 
             # 'ETH', 
             # 'DJI',
-            # 'SOM', 
+            'SOM', 
             # 'SSD', 
             # 'MDG'
             ]:
@@ -231,11 +251,5 @@ if __name__ == '__main__':
         print('Plotting plot_fiber')
         plot_fiber(country, outline)
 
-        # print('Plotting plot_cells')
-        # plot_cells(country, outline)
-
-
-
-
-
-
+        print('Plotting plot_cells')
+        plot_cells(country, outline)
