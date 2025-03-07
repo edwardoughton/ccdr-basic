@@ -118,6 +118,16 @@ def plot_landslide(country, outline, dimensions):
     if len(nr) > 0:
         nr.plot(color='black', markersize=3, ax=ax, legend=True)
 
+    if iso3 in ['ETH', 'KEN','SSD']:
+        ilemi_path = os.path.join(BASE_PATH, 'raw', 'ILEMI_TRIANGLE.shp')
+        ilemi_triangle = gpd.read_file(ilemi_path, crs='epsg:4326')
+        ilemi_triangle.plot(ax=ax, edgecolor='grey', linestyle='dashed', linewidth=2, facecolor='none')
+
+    if iso3 in ['SOM']:
+        somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+        somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+        somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+
     plt.legend(
         ['Planned Fiber', 'Live Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ],
         loc='lower right',
@@ -203,7 +213,17 @@ def plot_landslide_fiber(country, outline, dimensions):
             fiber2['status'] = 'Live'
             fiber2 = fiber2[['geometry', 'status']]
             fiber2.plot(color='orange', legend=True, lw=1.5, ax=ax)
-               
+
+        if iso3 in ['ETH', 'KEN','SSD']:
+            ilemi_path = os.path.join(BASE_PATH, 'raw', 'ILEMI_TRIANGLE.shp')
+            ilemi_triangle = gpd.read_file(ilemi_path, crs='epsg:4326')
+            ilemi_triangle.plot(ax=ax, edgecolor='grey', linestyle='dashed', linewidth=2, facecolor='none')
+            
+        if iso3 in ['SOM']:
+            somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+            somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+            somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+            
         legend = ['Live']
         plt.legend(legend, loc='lower right', title='Assets')
 
@@ -272,6 +292,11 @@ def plot_landslide_cells(country, outline, dimensions):
     #     fiber = gpd.read_file(path_fiber, crs='epsg:4326')
     #     fiber.plot(color='orange', lw=1.5, ax=ax)
 
+    if iso3 in ['SOM']:
+        somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+        somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+        somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+
     filename = '{}.csv'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
     path_sites = os.path.join(folder, filename)
@@ -297,6 +322,17 @@ def plot_landslide_cells(country, outline, dimensions):
     if len(nr) > 0:
         nr.plot(color='black', markersize=1, ax=ax, legend=True)
 
+    if iso3 in ['ETH', 'KEN','SSD']:
+        ilemi_path = os.path.join(BASE_PATH, 'raw', 'ILEMI_TRIANGLE.shp')
+        ilemi_triangle = gpd.read_file(ilemi_path, crs='epsg:4326')
+        ilemi_triangle.plot(ax=ax, edgecolor='grey', linestyle='dashed', linewidth=2, facecolor='none')
+
+    if iso3 in ['ETH', 'KEN','SSD']:
+        filename = 'ssd_admbnda_abyei_imwg_nbs_20180401.shp'
+        abyei_path = os.path.join(BASE_PATH, 'raw', filename)
+        abyei_path = gpd.read_file(abyei_path, crs='epsg:4326')
+        abyei_path.plot(ax=ax, edgecolor='grey', linestyle='dashed', linewidth=2, facecolor='none')
+        
     plt.legend(
         ['2G GSM', '3G UMTS', '4G LTE', '5G NR' 
         ],
@@ -328,12 +364,12 @@ if __name__ == '__main__':
     for idx, country in countries.iterrows():
 
         if not country['iso3'] in [
-            'KEN', 
-            'ETH', 
-            'DJI', 
+            # 'KEN', 
+            # 'ETH', 
+            # 'DJI', 
             'SOM', 
-            'SSD', 
-            'MDG' 
+            # 'SSD', 
+            # 'MDG' 
             ]:
             continue
 

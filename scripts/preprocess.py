@@ -18,7 +18,6 @@ from shapely.geometry import Point, box, LineString
 import rasterio
 from rasterio.mask import mask
 from tqdm import tqdm
-import openpyxl
 import numpy as np
 
 from misc import get_countries, process_country_shapes, process_regions, get_regions, get_scenarios
@@ -55,8 +54,8 @@ def run_preprocessing(country):
     print('Working on process_flooding_layers')
     process_flooding_layers(country)
 
-    print('Working on process_fiber')
-    process_fiber(iso3)
+    # print('Working on process_fiber')
+    # process_fiber(iso3)
     
     regions_df = get_regions(country, regional_level)#[:1]#[::-1]
 
@@ -1251,8 +1250,10 @@ if __name__ == "__main__":
 
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['KEN', 
-                                   'ETH', 'DJI', 'SOM', 'SSD','MDG'
+        if not country['iso3'] in [#'KEN', 
+                                #    'ETH', 'DJI', 'SOM', 
+                                   'SSD',
+                                #    'MDG'
                                    ]: 
             continue
 
