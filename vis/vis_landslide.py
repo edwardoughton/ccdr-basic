@@ -123,10 +123,10 @@ def plot_landslide(country, outline, dimensions):
         ilemi_triangle = gpd.read_file(ilemi_path, crs='epsg:4326')
         ilemi_triangle.plot(ax=ax, edgecolor='grey', linestyle='dashed', linewidth=2, facecolor='none')
 
-    if iso3 in ['SOM']:
-        somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
-        somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
-        somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+    # if iso3 in ['SOM']:
+    #     somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+    #     somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+    #     somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
 
     plt.legend(
         ['Planned Fiber', 'Live Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ],
@@ -219,10 +219,10 @@ def plot_landslide_fiber(country, outline, dimensions):
             ilemi_triangle = gpd.read_file(ilemi_path, crs='epsg:4326')
             ilemi_triangle.plot(ax=ax, edgecolor='grey', linestyle='dashed', linewidth=2, facecolor='none')
             
-        if iso3 in ['SOM']:
-            somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
-            somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
-            somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+        # if iso3 in ['SOM']:
+        #     somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+        #     somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+        #     somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
             
         legend = ['Live']
         plt.legend(legend, loc='lower right', title='Assets')
@@ -292,10 +292,10 @@ def plot_landslide_cells(country, outline, dimensions):
     #     fiber = gpd.read_file(path_fiber, crs='epsg:4326')
     #     fiber.plot(color='orange', lw=1.5, ax=ax)
 
-    if iso3 in ['SOM']:
-        somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
-        somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
-        somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+    # if iso3 in ['SOM']:
+    #     somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+    #     somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+    #     somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
 
     filename = '{}.csv'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'sites')

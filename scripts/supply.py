@@ -95,10 +95,10 @@ def plot_fiber(country, outline):
         ilemi_triangle = gpd.read_file(ilemi_path, crs='epsg:4326')
         ilemi_triangle.plot(ax=ax, edgecolor='grey', linestyle='dashed', linewidth=2, facecolor='none')
 
-    if iso3 in ['SOM']:
-        somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
-        somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
-        somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+    # if iso3 in ['SOM']:
+    #     somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+    #     somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+    #     somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
 
     zoom_level = 7
     if iso3 == 'DJI':
@@ -157,10 +157,10 @@ def plot_cells(country, outline):
         zoom_level = 9
     cx.add_basemap(ax, crs='epsg:4326', rasterized=True, zoom=zoom_level)
 
-    if iso3 in ['SOM']:
-        somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
-        somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
-        somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+    # if iso3 in ['SOM']:
+    #     somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+    #     somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+    #     somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
 
     filename = '{}.csv'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'sites')

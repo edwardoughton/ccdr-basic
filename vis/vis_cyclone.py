@@ -219,10 +219,10 @@ def plot_cyclone(country, outline, dimensions):
     if len(fiber) > 0:
         fiber.plot(color='orange', lw=1.5, ax=ax)
 
-    if iso3 in ['SOM']:
-        somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
-        somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
-        somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+    # if iso3 in ['SOM']:
+    #     somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+    #     somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+    #     somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
 
     filename = '{}.csv'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'sites')
