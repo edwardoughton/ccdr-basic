@@ -256,10 +256,10 @@ def plot_inuncoast(country, outline, dimensions,
                     abyei_path = gpd.read_file(abyei_path, crs='epsg:4326')
                     abyei_path.plot(ax=ax, edgecolor='grey', linestyle='dashed', linewidth=2, facecolor='none')
 
-                if iso3 in ['SOM']:
-                    somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
-                    somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
-                    somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
+                # if iso3 in ['SOM']:
+                #     somaliland_path = os.path.join(BASE_PATH, 'raw', 'somaliland.shp')
+                #     somaliland = gpd.read_file(somaliland_path, crs='epsg:4326')
+                #     somaliland.plot(ax=ax, edgecolor='lightgrey',  facecolor='lightgrey', zorder=10)
 
                 plt.legend(
                     ['Planned Fiber', 'Live Fiber', '2G GSM', '3G UMTS', '4G LTE', '5G NR' ],
